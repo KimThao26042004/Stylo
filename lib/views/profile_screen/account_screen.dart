@@ -54,8 +54,12 @@ class _AccountScreenState extends State<AccountScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const AppBackBar(title: 'Account'),
-      body: ListView(
+      appBar: AppBar(
+        title: const Text('Account', style: TextStyle(fontWeight: FontWeight.w700)),
+        centerTitle: true,
+        automaticallyImplyLeading: false,
+        scrolledUnderElevation: 0,
+      ),      body: ListView(
         children: [
           _tile(context, Icons.inventory_2_outlined, 'My Orders', () {
             Navigator.push(
@@ -78,8 +82,7 @@ class _AccountScreenState extends State<AccountScreen> {
           }),
           _tile(context, Icons.credit_card_outlined, 'Payment Methods', () {}),
           _tile(context, Icons.notifications_none, 'Notifications', () {
-            // NOTE: đổi tên widget cho đúng với file setupNotification_screen.dart của bạn
-            Navigator.push(
+              Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const NotificationScreen()),
             );

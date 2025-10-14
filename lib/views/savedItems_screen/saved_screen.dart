@@ -64,13 +64,10 @@ class _SavedScreenState extends State<SavedScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text('Saved Items',
-            style: TextStyle(fontWeight: FontWeight.w700)),
+        title: const Text('Saved', style: TextStyle(fontWeight: FontWeight.w700)),
         centerTitle: true,
+        automaticallyImplyLeading: false,
+        scrolledUnderElevation: 0,
         actions: [
           IconButton(
               onPressed: _openNotifications,

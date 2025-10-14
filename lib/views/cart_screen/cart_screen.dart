@@ -63,7 +63,12 @@ class _CartScreenState extends State<CartScreen> {
     final total = _subTotal + _shipping + _vat;
 
     return Scaffold(
-      appBar: const AppBackBar(title: 'My Cart'),
+      appBar: AppBar(
+        title: const Text('My Cart', style: TextStyle(fontWeight: FontWeight.w700)),
+        centerTitle: true,
+        automaticallyImplyLeading: false,
+        scrolledUnderElevation: 0,
+      ),
       body: hasItems
           ? Column(
         children: [
