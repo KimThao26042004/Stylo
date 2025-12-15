@@ -55,6 +55,21 @@ String? passwordValidator(String? v) {
   return null;
 }
 
+// Hàm kiểm tra nhập lại mật khẩu
+String? confirmPasswordValidator(String? v, String originalPassword) {
+  final s = v ?? '';
+  if (s.isEmpty) return 'Confirm password is required';
+  // Gọi lại hàm kiểm tra độ dài cơ bản nếu cần
+  final baseError = passwordValidator(s);
+  if (baseError != null) return baseError;
+
+  if (s != originalPassword) {
+    return 'Passwords do not match';
+  }
+  return null;
+}
+
+
 // ------- Small widgets -------
 class OrDivider extends StatelessWidget {
   const OrDivider({super.key});

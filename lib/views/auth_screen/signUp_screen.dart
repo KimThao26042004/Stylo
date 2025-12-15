@@ -15,6 +15,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _fullName = TextEditingController();
   final _email = TextEditingController();
   final _password = TextEditingController();
+  final _confirmPassword = TextEditingController();
   bool _obscure = true;
   bool _submitting = false;
 
@@ -25,6 +26,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     _fullName.dispose();
     _email.dispose();
     _password.dispose();
+    _confirmPassword.dispose();
     super.dispose();
   }
 
@@ -82,6 +84,20 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ),
                     ),
                     validator: passwordValidator,
+                  ),
+                  const SizedBox(height: 14), // Khoảng cách
+                  // Thêm TextFormField cho nhập lại mật khẩu
+                  TextFormField(
+                    controller: _confirmPassword,
+                    obscureText: _obscure,
+                    decoration: AppTheme.input('Confirm Password', hint: 'Re-enter your password').copyWith(
+                      suffixIcon: IconButton(
+                        icon: Icon(_obscure ? Icons.visibility_off : Icons.visibility),
+                        onPressed: () => setState(() => _obscure = !_obscure),
+                      ),
+                    ),
+                    // Sử dụng hàm kiểm tra mới
+                    validator: (v) => confirmPasswordValidator(v, _password.text),
                   ),
                   const SizedBox(height: 10),
                   const TermsLine(),

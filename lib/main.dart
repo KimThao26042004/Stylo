@@ -27,8 +27,8 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.black),
         fontFamily: 'Roboto',
       ),
-      // initialRoute: LoginScreen.routeName,
-      home: const HomeScreen(),
+      initialRoute: ResetPassScreen.routeName,
+      // home: const HomeScreen(),
       routes: {
         LoginScreen.routeName: (_) => const LoginScreen(),
         SignUpScreen.routeName: (_) => const SignUpScreen(),
