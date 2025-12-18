@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../../state/auth_provider.dart';
 import 'auth_common.dart';
 import 'login_screen.dart';
+import 'VerificationCode_screen.dart';
 
 class SignUpScreen extends StatefulWidget {
   static const String routeName = '/signup';
@@ -16,7 +20,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _email = TextEditingController();
   final _password = TextEditingController();
   bool _obscure = true;
-  bool _submitting = false;
 
   bool get _valid => _formKey.currentState?.validate() == true;
 
@@ -30,17 +33,38 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   Future<void> _submit() async {
     if (!_valid) return;
-    setState(() => _submitting = true);
-    await Future.delayed(const Duration(milliseconds: 800));
-    // TODO: POST /auth/register
-    setState(() => _submitting = false);
+
+    final auth = context.read<AuthProvider>();
+    final fullName = _fullName.text.trim();
+    final email = _email.text.trim();
+    final password = _password.text;
+
+    await auth.register(fullName, email, password);
+
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Account created (mock)')));
-    Navigator.pushReplacementNamed(context, LoginScreen.routeName);
+
+    if (auth.error != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(auth.error!)),
+      );
+      return;
+    }
+
+    // ✅ qua OTP screen với flow = signup
+    Navigator.pushReplacementNamed(
+      context,
+      VerificationCodeScreen.routeName,
+      arguments: {
+        "email": email,
+        "flow": "signup",
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -87,26 +111,22 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   const TermsLine(),
                   const SizedBox(height: 10),
                   ElevatedButton(
-                    onPressed: _valid && !_submitting ? _submit : null,
+                    onPressed: _valid && !auth.isLoading ? _submit : null,
                     style: AppTheme.primaryButton(context),
-                    child: _submitting
+                    child: auth.isLoading
                         ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
                         : const Text('Create an Account'),
                   ),
                 ]),
               ),
-              const SizedBox(height: 16),
-              const OrDivider(),
-              const SizedBox(height: 12),
-              GoogleBtn(label: 'Sign Up with Google', onPressed: () {/* TODO */}),
-              const SizedBox(height: 10),
-              FacebookBtn(label: 'Sign Up with Facebook', onPressed: () {/* TODO */}),
               const SizedBox(height: 24),
               Center(
                 child: Wrap(spacing: 6, children: [
                   const Text('Already have an account?'),
                   GestureDetector(
-                    onTap: () => Navigator.pushReplacementNamed(context, LoginScreen.routeName),
+                    onTap: auth.isLoading
+                        ? null
+                        : () => Navigator.pushReplacementNamed(context, LoginScreen.routeName),
                     child: const Text('Log In',
                         style: TextStyle(decoration: TextDecoration.underline, fontWeight: FontWeight.w600)),
                   ),

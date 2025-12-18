@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../services/auth_service.dart';
+import '../../state/auth_provider.dart';
 import 'auth_common.dart';
 import 'ResetPass_screen.dart';
+import 'login_screen.dart';
 
 class VerificationCodeScreen extends StatefulWidget {
   static const String routeName = '/verify';
   final String email;
-  const VerificationCodeScreen({super.key, required this.email});
+  final String flow; // "signup" | "reset"
+  const VerificationCodeScreen({super.key, required this.email, required this.flow});
 
   @override
   State<VerificationCodeScreen> createState() => _VerificationCodeScreenState();
@@ -13,35 +18,132 @@ class VerificationCodeScreen extends StatefulWidget {
 
 class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
   final _cells = List.generate(4, (_) => TextEditingController());
-  bool _submitting = false;
   String get _code => _cells.map((c) => c.text).join();
+  bool _submitting = false;
 
   @override
   void dispose() {
-    for (final c in _cells) c.dispose();
+    for (final c in _cells) {
+      c.dispose();
+    }
     super.dispose();
   }
 
+  // Future<void> _continue() async {
+  //   if (_code.length != 4) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(content: Text('Mã OTP không hợp lệ')),
+  //     );
+  //     return;
+  //   }
+  //
+  //   setState(() => _submitting = true);
+  //
+  //   try {
+  //     await context.read<AuthProvider>().verifyOtp(
+  //       email: widget.email,
+  //       code: _code,
+  //     );
+  //
+  //
+  //     if (!mounted) return;
+  //
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(content: Text('Xác thực thành công')),
+  //     );
+  //
+  //     // ✅ QUAY VỀ LOGIN
+  //     Navigator.pushNamedAndRemoveUntil(
+  //       context,
+  //       LoginScreen.routeName,
+  //           (_) => false,
+  //     );
+  //   } catch (e) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(content: Text('Xác thực thất bại')),
+  //     );
+  //   }
+  //
+  //   setState(() => _submitting = false);
+  // }
+
   Future<void> _continue() async {
-    if (_code.length != 4 || _code.contains(RegExp(r'[^0-9]'))) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter 4 digits')));
+    if (_code.length != 4) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Mã OTP không hợp lệ')),
+      );
       return;
     }
+
     setState(() => _submitting = true);
-    await Future.delayed(const Duration(milliseconds: 800));
-    // TODO: POST /auth/verify-otp { email, code }
+
+    try {
+      final auth = context.read<AuthProvider>();
+
+      if (widget.flow == 'forgot') {
+        // ✅ OTP cho QUÊN MẬT KHẨU
+        await auth.verifyResetOtp(
+          email: widget.email,
+          code: _code,
+        );
+
+        if (!mounted) return;
+
+        Navigator.pushReplacementNamed(
+          context,
+          ResetPassScreen.routeName,
+          arguments: widget.email,
+        );
+      } else {
+        // ✅ OTP cho ĐĂNG KÝ
+        await auth.verifyOtp(
+          email: widget.email,
+          code: _code,
+        );
+
+        if (!mounted) return;
+
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          LoginScreen.routeName,
+              (_) => false,
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Xác thực thất bại')),
+      );
+    }
+
     setState(() => _submitting = false);
-    if (!mounted) return;
-    Navigator.pushReplacementNamed(context, ResetPassScreen.routeName);
   }
 
+
   Future<void> _resend() async {
-    // TODO: POST /auth/resend-otp
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Resent code (mock)')));
+    final auth = context.read<AuthProvider>();
+    final email = widget.email;
+
+    // signup: resend-otp
+    // reset: gọi lại forgot-password để gửi OTP reset mới
+    if (widget.flow == "signup") {
+      await auth.resendOtp(email);
+    } else {
+      await auth.forgotPassword(email);
+    }
+
+    if (!mounted) return;
+
+    if (auth.error != null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(auth.error!)));
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Resent code')));
   }
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+
     return Scaffold(
       appBar: const AppBackBar(title: 'Verification Code'),
       body: SafeArea(
@@ -72,13 +174,13 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
             const SizedBox(height: 10),
             Row(children: [
               const Text("Email not received?", style: TextStyle(color: AppTheme.lightText)),
-              TextButton(onPressed: _resend, child: const Text('Resend code')),
+              TextButton(onPressed: auth.isLoading ? null : _resend, child: const Text('Resend code')),
             ]),
             const SizedBox(height: 8),
             ElevatedButton(
-              onPressed: !_submitting ? _continue : null,
+              onPressed: auth.isLoading ? null : _continue,
               style: AppTheme.primaryButton(context),
-              child: _submitting
+              child: auth.isLoading
                   ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
                   : const Text('Continue'),
             ),

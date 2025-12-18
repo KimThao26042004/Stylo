@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../../state/auth_provider.dart';
 import 'auth_common.dart';
 import 'VerificationCode_screen.dart';
 
@@ -13,7 +16,6 @@ class ForgotPassScreen extends StatefulWidget {
 class _ForgotPassScreenState extends State<ForgotPassScreen> {
   final _formKey = GlobalKey<FormState>();
   final _email = TextEditingController();
-  bool _submitting = false;
 
   bool get _valid => _formKey.currentState?.validate() == true;
 
@@ -25,16 +27,36 @@ class _ForgotPassScreenState extends State<ForgotPassScreen> {
 
   Future<void> _sendCode() async {
     if (!_valid) return;
-    setState(() => _submitting = true);
-    await Future.delayed(const Duration(milliseconds: 800));
-    // TODO: POST /auth/forgot-password
-    setState(() => _submitting = false);
+
+    final auth = context.read<AuthProvider>();
+    final email = _email.text.trim();
+
+    await auth.forgotPassword(email);
+
     if (!mounted) return;
-    Navigator.pushNamed(context, VerificationCodeScreen.routeName, arguments: _email.text.trim());
+
+    if (auth.error != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(auth.error!)),
+      );
+      return;
+    }
+
+    // ✅ qua OTP screen với flow = reset
+    Navigator.pushNamed(
+      context,
+      VerificationCodeScreen.routeName,
+      arguments: {
+        "email": email,
+        "flow": "reset",
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+
     return Scaffold(
       appBar: const AppBackBar(title: 'Forgot Password'),
       body: SafeArea(
@@ -61,9 +83,9 @@ class _ForgotPassScreenState extends State<ForgotPassScreen> {
                 ),
                 const SizedBox(height: 14),
                 ElevatedButton(
-                  onPressed: _valid && !_submitting ? _sendCode : null,
+                  onPressed: _valid && !auth.isLoading ? _sendCode : null,
                   style: AppTheme.primaryButton(context),
-                  child: _submitting
+                  child: auth.isLoading
                       ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
                       : const Text('Send Code'),
                 ),
