@@ -9,6 +9,7 @@ import '../cart_screen/cart_screen.dart';
 import '../profile_screen/account_screen.dart';
 import '../customerService_screen/customerService_screen.dart';
 import '../products_screen/productDetail_screen.dart';
+import '../categories/categories_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   static const String routeName = '/home';
@@ -27,6 +28,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _openSearch() {
     Navigator.push(context, MaterialPageRoute(builder: (_) => const SearchScreen()));
+  }
+
+  void _openCategories() {
+    Navigator.push(
+        context, MaterialPageRoute(builder: (_) => const CategoriesScreen()));
   }
 
   void _openSaved() {
@@ -49,7 +55,7 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() => _tabIndex = i);
     switch (i) {
       case 0: break;               // Home
-      case 1: _openSearch(); break;
+      case 1: _openCategories(); break;
       case 2: _openSaved();  break;
       case 3: _openCart();   break;
       case 4: _openAccount();break;
@@ -131,7 +137,7 @@ class _HomeScreenState extends State<HomeScreen> {
         type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Search'),
+          BottomNavigationBarItem(icon: Icon(Icons.category), label: 'Categories'),
           BottomNavigationBarItem(icon: Icon(Icons.favorite_border), label: 'Saved'),
           BottomNavigationBarItem(icon: Icon(Icons.shopping_cart_outlined), label: 'Cart'),
           BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Account'),

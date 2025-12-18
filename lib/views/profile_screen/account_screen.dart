@@ -8,6 +8,7 @@ import '../home_screen/home_screen.dart';
 import '../home_screen/search_screen.dart';
 import '../savedItems_screen/saved_screen.dart';
 import '../cart_screen/cart_screen.dart';
+import '../auth_screen/login_screen.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -95,7 +96,16 @@ class _AccountScreenState extends State<AccountScreen> {
             leading: const Icon(Icons.logout, color: Colors.red),
             title: const Text('Logout',
                 style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600)),
-            onTap: () {/* TODO: logout */},
+            onTap: () {
+              // TODO: clear token / user nếu có (sau này)
+
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+                    (route) => false,
+              );
+            },
+
           ),
         ],
       ),

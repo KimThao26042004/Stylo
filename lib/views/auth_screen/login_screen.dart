@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../../state/auth_provider.dart';
+import '../home_screen/home_screen.dart';
+
 import 'auth_common.dart';
 import 'forgotPass_screen.dart';
 import 'signUp_screen.dart';
+import 'VerificationCode_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   static const String routeName = '/login';
@@ -16,7 +22,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final _email = TextEditingController();
   final _password = TextEditingController();
   bool _obscure = true;
-  bool _submitting = false;
 
   bool get _valid => _formKey.currentState?.validate() == true;
 
@@ -27,20 +32,49 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  bool _shouldGoVerify(String? msg) {
+    if (msg == null) return false;
+    final m = msg.toLowerCase();
+    return m.contains('verify') ||
+        m.contains('verified') ||
+        m.contains('otp') ||
+        m.contains('not verified') ||
+        m.contains('xác thực') ||
+        m.contains('chưa xác thực');
+  }
+
   Future<void> _submit() async {
     if (!_valid) return;
-    setState(() => _submitting = true);
-    await Future.delayed(const Duration(milliseconds: 800));
-    // TODO: POST /auth/login
-    setState(() => _submitting = false);
+
+    final auth = context.read<AuthProvider>();
+
+    await auth.login(
+      _email.text.trim(),
+      _password.text,
+    );
+
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Login success (mock)')),
+
+    if (auth.error != null) {
+      // ❌ Chỉ hiển thị lỗi, KHÔNG chuyển OTP
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(auth.error!)),
+      );
+      return;
+    }
+
+    // ✅ Login OK → Home
+    Navigator.pushReplacementNamed(
+      context,
+      HomeScreen.routeName,
     );
   }
 
+
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -49,51 +83,90 @@ class _LoginScreenState extends State<LoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 12),
-              Text('Login to your account',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700)),
+              Text(
+                'Login to your account',
+                style: Theme.of(context)
+                    .textTheme
+                    .headlineSmall
+                    ?.copyWith(fontWeight: FontWeight.w700),
+              ),
               const SizedBox(height: 6),
-              const Text("It's great to see you again.", style: TextStyle(color: AppTheme.lightText)),
+              const Text(
+                "It's great to see you again.",
+                style: TextStyle(color: AppTheme.lightText),
+              ),
               const SizedBox(height: 20),
+
               Form(
                 key: _formKey,
                 onChanged: () => setState(() {}),
-                child: Column(children: [
-                  TextFormField(
-                    controller: _email,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: AppTheme.input('Email', hint: 'Enter your email address'),
-                    validator: emailValidator,
-                  ),
-                  const SizedBox(height: 14),
-                  TextFormField(
-                    controller: _password,
-                    obscureText: _obscure,
-                    decoration: AppTheme.input('Password', hint: 'Enter your password').copyWith(
-                      suffixIcon: IconButton(
-                        icon: Icon(_obscure ? Icons.visibility_off : Icons.visibility),
-                        onPressed: () => setState(() => _obscure = !_obscure),
+                child: Column(
+                  children: [
+                    TextFormField(
+                      controller: _email,
+                      keyboardType: TextInputType.emailAddress,
+                      decoration: AppTheme.input(
+                        'Email',
+                        hint: 'Enter your email address',
+                      ),
+                      validator: emailValidator,
+                    ),
+                    const SizedBox(height: 14),
+                    TextFormField(
+                      controller: _password,
+                      obscureText: _obscure,
+                      decoration: AppTheme
+                          .input('Password', hint: 'Enter your password')
+                          .copyWith(
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscure ? Icons.visibility_off : Icons.visibility,
+                          ),
+                          onPressed: () =>
+                              setState(() => _obscure = !_obscure),
+                        ),
+                      ),
+                      validator: passwordValidator,
+                    ),
+                    const SizedBox(height: 10),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: auth.isLoading
+                            ? null
+                            : () => Navigator.pushNamed(
+                          context,
+                          ForgotPassScreen.routeName,
+                        ),
+                        child: const Text('Reset your password'),
                       ),
                     ),
-                    validator: passwordValidator,
-                  ),
-                  const SizedBox(height: 10),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: () => Navigator.pushNamed(context, ForgotPassScreen.routeName),
-                      child: const Text('Reset your password'),
+                    const SizedBox(height: 8),
+
+                    ElevatedButton(
+                      onPressed: (_valid && !auth.isLoading) ? _submit : null,
+                      style: AppTheme.primaryButton(context),
+                      child: auth.isLoading
+                          ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child:
+                        CircularProgressIndicator(strokeWidth: 2),
+                      )
+                          : const Text('Login'),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  ElevatedButton(
-                    onPressed: _valid && !_submitting ? _submit : null,
-                    style: AppTheme.primaryButton(context),
-                    child: _submitting
-                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                        : const Text('Login'),
-                  ),
-                ]),
+
+                    if (auth.error != null) ...[
+                      const SizedBox(height: 10),
+                      Text(
+                        auth.error!,
+                        style: const TextStyle(color: Colors.red),
+                      ),
+                    ],
+                  ],
+                ),
               ),
+
               const SizedBox(height: 16),
               const OrDivider(),
               const SizedBox(height: 12),
@@ -102,14 +175,27 @@ class _LoginScreenState extends State<LoginScreen> {
               FacebookBtn(label: 'Login with Facebook', onPressed: () {/* TODO */}),
               const SizedBox(height: 24),
               Center(
-                child: Wrap(spacing: 6, children: [
-                  const Text("Don't have an account?"),
-                  GestureDetector(
-                    onTap: () => Navigator.pushReplacementNamed(context, SignUpScreen.routeName),
-                    child: const Text('Join',
-                        style: TextStyle(decoration: TextDecoration.underline, fontWeight: FontWeight.w600)),
-                  ),
-                ]),
+                child: Wrap(
+                  spacing: 6,
+                  children: [
+                    const Text("Don't have an account?"),
+                    GestureDetector(
+                      onTap: auth.isLoading
+                          ? null
+                          : () => Navigator.pushReplacementNamed(
+                        context,
+                        SignUpScreen.routeName,
+                      ),
+                      child: const Text(
+                        'Join',
+                        style: TextStyle(
+                          decoration: TextDecoration.underline,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),

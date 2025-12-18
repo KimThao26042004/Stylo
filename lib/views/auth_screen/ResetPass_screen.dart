@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../../state/auth_provider.dart';
 import 'auth_common.dart';
 import 'login_screen.dart';
 
@@ -15,7 +18,6 @@ class _ResetPassScreenState extends State<ResetPassScreen> {
   final _pass1 = TextEditingController();
   final _pass2 = TextEditingController();
   bool _ob1 = true, _ob2 = true;
-  bool _submitting = false;
 
   bool get _valid => _formKey.currentState?.validate() == true;
 
@@ -28,17 +30,41 @@ class _ResetPassScreenState extends State<ResetPassScreen> {
 
   Future<void> _continue() async {
     if (!_valid) return;
-    setState(() => _submitting = true);
-    await Future.delayed(const Duration(milliseconds: 800));
-    // TODO: POST /auth/reset-password
-    setState(() => _submitting = false);
+
+    final auth = context.read<AuthProvider>();
+
+    // lấy email từ arguments nếu có, không có thì lấy trong provider
+    final argEmail = ModalRoute.of(context)?.settings.arguments as String?;
+    final email = argEmail ?? auth.email ?? "";
+
+    if (email.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Missing email for reset password")),
+      );
+      return;
+    }
+
+    await auth.resetPassword(email, _pass1.text);
+
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Password updated (mock)')));
+
+    if (auth.error != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(auth.error!)),
+      );
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Password updated')),
+    );
     Navigator.pushNamedAndRemoveUntil(context, LoginScreen.routeName, (_) => false);
   }
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+
     return Scaffold(
       appBar: const AppBackBar(title: 'Reset Password'),
       body: SafeArea(
@@ -87,9 +113,9 @@ class _ResetPassScreenState extends State<ResetPassScreen> {
                 ),
                 const SizedBox(height: 14),
                 ElevatedButton(
-                  onPressed: _valid && !_submitting ? _continue : null,
+                  onPressed: _valid && !auth.isLoading ? _continue : null,
                   style: AppTheme.primaryButton(context),
-                  child: _submitting
+                  child: auth.isLoading
                       ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
                       : const Text('Continue'),
                 ),
