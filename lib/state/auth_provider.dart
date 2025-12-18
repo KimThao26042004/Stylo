@@ -41,11 +41,19 @@ class AuthProvider extends ChangeNotifier {
     required String email,
     required String code,
   }) async {
-    await _service.verifyOtp(
-      email: email,
-      code: code,
-    );
+    try {
+      isLoading = true;
+      notifyListeners();
+      await _service.verifyOtp(email: email, code: code);
+      error = null;
+    } catch (e) {
+      error = 'Xác thực thất bại';
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
   }
+
   Future<void> resendOtp(String email) =>
       _run(() async => _auth.resendOtp(email));
 
@@ -77,10 +85,17 @@ class AuthProvider extends ChangeNotifier {
     required String email,
     required String code,
   }) async {
-    await _service.verifyResetOtp(
-      email: email,
-      code: code,
-    );
+    try {
+      isLoading = true;
+      notifyListeners();
+      await _service.verifyResetOtp(email: email, code: code);
+      error = null;
+    } catch (e) {
+      error = 'Xác thực thất bại';
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
   }
 
   Future<void> resetPassword(String email, String newPassword) =>
