@@ -89,15 +89,8 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.black),
         fontFamily: 'Roboto',
       ),
-<<<<<<< HEAD
       initialRoute: ResetPassScreen.routeName,
-      // home: const HomeScreen(),
-=======
-
-      //  dùng initialRoute thay vì home để quản lý điều hướng rõ ràng
       initialRoute: LoginScreen.routeName,
-
->>>>>>> 2e120a9a87c8814c381568ac56115cb16a2d722a
       routes: {
         LoginScreen.routeName: (_) => const LoginScreen(),
         SignUpScreen.routeName: (_) => const SignUpScreen(),
