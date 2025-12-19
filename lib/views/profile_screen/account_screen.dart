@@ -5,7 +5,7 @@ import 'myDetail_screen.dart';
 import 'setupNotification_screen.dart';
 import '../cart_screen/address_screen.dart';
 import '../home_screen/home_screen.dart';
-import '../home_screen/search_screen.dart';
+import '../categories/categories_screen.dart';
 import '../savedItems_screen/saved_screen.dart';
 import '../cart_screen/cart_screen.dart';
 import '../auth_screen/login_screen.dart';
@@ -32,7 +32,7 @@ class _AccountScreenState extends State<AccountScreen> {
       case 1:
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => const SearchScreen()),
+          MaterialPageRoute(builder: (_) => const CategoriesScreen()),
         );
         break;
       case 2:
@@ -115,7 +115,7 @@ class _AccountScreenState extends State<AccountScreen> {
         type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Search'),
+          BottomNavigationBarItem(icon: Icon(Icons.category), label: 'Categories'),
           BottomNavigationBarItem(
               icon: Icon(Icons.favorite_border), label: 'Saved'),
           BottomNavigationBarItem(

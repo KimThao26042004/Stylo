@@ -1,4 +1,5 @@
 import 'api_client.dart';
+import 'secure_storage.dart';
 
 class AuthService {
   final ApiClient _api = ApiClient();
@@ -33,11 +34,22 @@ class AuthService {
     required String email,
     required String password,
   }) async {
-    final res = await _api.dio.post("/api/auth/login", data: {
-      "email": email,      // TenDangNhap
-      "password": password // MatKhau
-    });
-    return Map<String, dynamic>.from(res.data);
+    final res = await _api.dio.post(
+      "/api/auth/login",
+      data: {
+        "email": email,
+        "password": password,
+      },
+    );
+
+    final data = Map<String, dynamic>.from(res.data);
+
+    //  LƯU TOKEN
+    if (data['accessToken'] != null) {
+      await SecureStorage.saveToken(data['accessToken']);
+    }
+
+    return data;
   }
 
   Future<void> forgotPassword(String email) async {

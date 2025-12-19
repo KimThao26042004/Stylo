@@ -3,9 +3,9 @@ import '../auth_screen/auth_common.dart';
 import '../../data/mock_db.dart';
 import 'checkout_screen.dart';
 import '../home_screen/home_screen.dart';
-import '../home_screen/search_screen.dart';
 import '../savedItems_screen/saved_screen.dart';
 import '../profile_screen/account_screen.dart';
+import '../categories/categories_screen.dart';
 
 class CartScreen extends StatefulWidget {
   static const String routeName = '/cart';
@@ -32,8 +32,9 @@ class _CartScreenState extends State<CartScreen> {
         Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomeScreen()));
         break;
       case 1:
-        Navigator.push(context, MaterialPageRoute(builder: (_) => const SearchScreen()));
-        break;
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const CategoriesScreen()));
+
+    break;
       case 2:
         Navigator.push(context, MaterialPageRoute(builder: (_) => const SavedScreen()));
         break;
@@ -54,7 +55,7 @@ class _CartScreenState extends State<CartScreen> {
 
   double get _subTotal =>
       cart.entries.fold(0.0, (sum, e) => sum + (e.key.price * e.value));
-  static const double _shipping = 80.0;
+  static const double _shipping = 30.000;
   static const double _vat = 0.0;
 
   @override
@@ -105,8 +106,14 @@ class _CartScreenState extends State<CartScreen> {
                 ElevatedButton(
                   style: AppTheme.primaryButton(context),
                   onPressed: () {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (_) => const CheckoutScreen()));
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => CheckoutScreen(
+                          subTotal: _subTotal,
+                        ),
+                      ),
+                    );
                   },
                   child: const Text('Go To Checkout  →'),
                 ),
@@ -122,7 +129,7 @@ class _CartScreenState extends State<CartScreen> {
         type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Search'),
+          BottomNavigationBarItem(icon: Icon(Icons.category), label: 'Categories'),
           BottomNavigationBarItem(icon: Icon(Icons.favorite_border), label: 'Saved'),
           BottomNavigationBarItem(icon: Icon(Icons.shopping_cart_outlined), label: 'Cart'),
           BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Account'),

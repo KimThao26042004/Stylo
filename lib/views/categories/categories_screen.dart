@@ -1,78 +1,163 @@
 import 'package:flutter/material.dart';
+import '../../models/category.dart';
+import '../../services/product_service.dart';
 import 'subcategories_screen.dart';
+import '../home_screen/home_screen.dart';
+import '../cart_screen/cart_screen.dart';
+import '../profile_screen/account_screen.dart';
+import '../home_screen/notifications_screen.dart';
+import '../savedItems_screen/saved_screen.dart';
 
-class CategoriesScreen extends StatelessWidget {
-  static const routeName = '/categories';
-
+class CategoriesScreen extends StatefulWidget {
   const CategoriesScreen({super.key});
 
-  final List<Map<String, dynamic>> categories = const [
-    {
-      'id': 1,
-      'name': 'Áo',
-      'subCategories': [
-        {'id': 11, 'name': 'Áo thun'},
-        {'id': 12, 'name': 'Áo sơ mi'},
-        {'id': 13, 'name': 'Áo khoác'},
-      ]
-    },
-    {
-      'id': 2,
-      'name': 'Quần',
-      'subCategories': [
-        {'id': 21, 'name': 'Quần jean'},
-        {'id': 22, 'name': 'Quần tây'},
-      ]
-    },
-    {
-      'id': 3,
-      'name': 'Phụ kiện',
-      'subCategories': [
-        {'id': 31, 'name': 'Thắt lưng'},
-        {'id': 32, 'name': 'Ví'},
-      ]
-    },
-    {
-      'id': 4,
-      'name': 'Giá tốt',
-      'subCategories': [
-        {'id': 41, 'name': 'Sale 30%'},
-        {'id': 42, 'name': 'Sale 50%'},
-      ]
-    },
-  ];
+  @override
+  State<CategoriesScreen> createState() => _CategoriesScreenState();
+}
+
+class _CategoriesScreenState extends State<CategoriesScreen> {
+  bool _loading = true;
+  String? _error;
+  List<Category> _phanLoai = [];
+
+  int _tabIndex = 1;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    try {
+      final list = await ProductService.getPhanLoai();
+      if (!mounted) return;
+      setState(() {
+        _phanLoai = list;
+        _loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = e.toString();
+        _loading = false;
+      });
+    }
+  }
+
+  void _openNotifications() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+    );
+  }
+
+  // ---- Bottom nav ----
+  void _onBottomTap(int i) {
+    if (i == _tabIndex) return;
+
+    setState(() => _tabIndex = i);
+
+    switch (i) {
+      case 0:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
+        );
+        break;
+
+      case 1:
+        break;
+
+      case 2:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const SavedScreen()),
+        );
+        break;
+
+      case 3:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const CartScreen()),
+        );
+        break;
+
+      case 4:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const AccountScreen()),
+        );
+        break;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (_loading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_error != null) {
+      return Scaffold(body: Center(child: Text(_error!)));
+    }
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Danh mục')),
+      appBar: AppBar(
+        title: const Text('Categories', style: TextStyle(fontWeight: FontWeight.w700)),
+        centerTitle: true,
+        automaticallyImplyLeading: false,
+        scrolledUnderElevation: 0,
+        actions: [
+          IconButton(
+              onPressed: _openNotifications,
+              icon: const Icon(Icons.notifications_none)),
+        ],
+        bottom: const PreferredSize(
+          preferredSize: Size.fromHeight(1),
+          child: Divider(height: 1),
+        ),
+      ),
       body: ListView.separated(
-        itemCount: categories.length,
+        itemCount: _phanLoai.length,
         separatorBuilder: (_, __) => const Divider(height: 1),
-        itemBuilder: (context, index) {
-          final cate = categories[index];
+        itemBuilder: (_, i) {
+          final pl = _phanLoai[i];
           return ListTile(
-            title: Text(
-              cate['name'],
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            trailing: const Icon(Icons.add),
+            title: Text(pl.name),
+            trailing: const Icon(Icons.chevron_right),
             onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (_) => SubCategoriesScreen(
-                    categoryName: cate['name'],
-                    subCategories: cate['subCategories'],
+                    phanLoaiId: pl.id,
+                    phanLoaiName: pl.name,
                   ),
                 ),
               );
             },
           );
         },
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _tabIndex,
+        onTap: _onBottomTap,
+        type: BottomNavigationBarType.fixed,
+        items: const [
+          BottomNavigationBarItem(
+              icon: Icon(Icons.home_filled), label: 'Home'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.category), label: 'Categories'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.favorite_border), label: 'Saved'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.shopping_cart_outlined), label: 'Cart'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.person_outline), label: 'Account'),
+        ],
       ),
     );
   }

@@ -57,23 +57,32 @@ class AuthProvider extends ChangeNotifier {
   Future<void> resendOtp(String email) =>
       _run(() async => _auth.resendOtp(email));
 
-  Future<void> login(String username, String password) async {
-    isLoading = true;
-    error = null;
-    notifyListeners();
-
+  Future<void> login(String email, String password) async {
     try {
-      await _service.login(
-        email: username,
+      isLoading = true;
+      error = null;
+      notifyListeners();
+
+      final res = await _service.login(
+        email: email,
         password: password,
       );
-    } catch (e) {
-      error = e.toString().replaceAll('Exception:', '').trim();
-    }
 
-    isLoading = false;
-    notifyListeners();
+      final token = res['token'];
+      if (token == null) {
+        throw Exception('Token not found');
+      }
+
+      await SecureStorage.saveToken(token);
+
+    } catch (e) {
+      error = e.toString();
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
   }
+
 
   Future<void> forgotPassword(String email) =>
       _run(() async {

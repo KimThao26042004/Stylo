@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'services/auth_service.dart';
 import 'state/auth_provider.dart';
+import 'state/account_provider.dart';
+import 'state/product_provider.dart';
 
 import 'views/auth_screen/login_screen.dart';
 import 'views/auth_screen/signUp_screen.dart';
@@ -17,9 +19,18 @@ void main() {
         ChangeNotifierProvider(
           create: (_) => AuthProvider(AuthService()),
         ),
+
+        ChangeNotifierProvider(
+          create: (_) => AccountProvider(),
+        ),
+
+        ChangeNotifierProvider(
+            create: (_) => ProductProvider(),
+        ),
       ],
       child: const MyApp(),
     ),
+
   );
 }
 
