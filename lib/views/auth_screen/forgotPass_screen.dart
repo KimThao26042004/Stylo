@@ -42,13 +42,13 @@ class _ForgotPassScreenState extends State<ForgotPassScreen> {
       return;
     }
 
-    // ✅ qua OTP screen với flow = reset
+    //  qua OTP screen với flow = reset
     Navigator.pushNamed(
       context,
       VerificationCodeScreen.routeName,
       arguments: {
         "email": email,
-        "flow": "reset",
+        "flow": "forgot",
       },
     );
   }

@@ -43,10 +43,11 @@ class AuthService {
   Future<void> forgotPassword(String email) async {
     await _api.dio.post(
       "/api/auth/forgot-password",
-      data: email,
+      data: {
+        "email": email,
+      },
     );
   }
-
 
   Future<void> verifyResetOtp({
     required String email,
@@ -65,6 +66,13 @@ class AuthService {
     required String email,
     required String newPassword,
   }) async {
-    await _api.dio.post("/api/auth/resend-otp", data: email);
+    await _api.dio.post(
+      "/api/auth/reset-password",
+      data: {
+        "email": email,
+        "newPassword": newPassword,
+      },
+    );
   }
+
 }
