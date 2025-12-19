@@ -1,78 +1,114 @@
 import 'package:flutter/material.dart';
+import '../../models/product.dart';
+import '../../services/product_service.dart';
+import '../products_screen/productDetail_screen.dart';
 
-class ListProductsScreen extends StatelessWidget {
-  final String subCategoryName;
+class ListProductsScreen extends StatefulWidget {
+  final int danhMucId;
+  final String danhMucName;
 
   const ListProductsScreen({
     super.key,
-    required this.subCategoryName,
+    required this.danhMucId,
+    required this.danhMucName,
   });
 
-  final List<Map<String, dynamic>> products = const [
-    {
-      'id': 1,
-      'name': 'Áo thun basic',
-      'price': 199000,
-    },
-    {
-      'id': 2,
-      'name': 'Áo thun form rộng',
-      'price': 249000,
-    },
-    {
-      'id': 3,
-      'name': 'Áo thun cotton',
-      'price': 299000,
-    },
-  ];
+  @override
+  State<ListProductsScreen> createState() => _ListProductsScreenState();
+}
+
+class _ListProductsScreenState extends State<ListProductsScreen> {
+  bool _loading = true;
+  String? _error;
+  List<Product> _products = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    try {
+      final list =
+      await ProductService.getSanPhamByDanhMuc(widget.danhMucId);
+      if (!mounted) return;
+      setState(() {
+        _products = list;
+        _loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = e.toString();
+        _loading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(subCategoryName)),
-      body: GridView.builder(
+      appBar: AppBar(title: Text(widget.danhMucName)),
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : _error != null
+          ? Center(child: Text(_error!))
+          : GridView.builder(
         padding: const EdgeInsets.all(12),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        itemCount: _products.length,
+        gridDelegate:
+        const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
-          crossAxisSpacing: 12,
           mainAxisSpacing: 12,
-          childAspectRatio: 0.7,
+          crossAxisSpacing: 12,
+          childAspectRatio: 0.66,
         ),
-        itemCount: products.length,
-        itemBuilder: (context, index) {
-          final p = products[index];
-          return Card(
-            elevation: 2,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Container(
-                    color: Colors.grey.shade200,
-                    child: const Center(
-                      child: Icon(Icons.image, size: 50),
+        itemBuilder: (_, i) {
+          final p = _products[i];
+          return InkWell(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ProductDetailScreen(
+                    productId: p.sanPhamId,
+                  ),
+                ),
+              );
+            },
+            child: Card(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Image.network(
+                      p.imageUrl,
+                      fit: BoxFit.cover,
+                      width: double.infinity,
                     ),
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: Text(
-                    p['name'],
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: Text(
-                    '${p['price']} đ',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
+                  Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: Text(
+                      p.tenSanPham,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w600),
                     ),
                   ),
-                ),
-                const SizedBox(height: 8),
-              ],
+                  Padding(
+                    padding:
+                    const EdgeInsets.symmetric(horizontal: 8),
+                    child: Text(
+                      '${p.giaBan} đ',
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
             ),
           );
         },

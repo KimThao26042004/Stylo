@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../../state/account_provider.dart';
+import '../../models/account_profile.dart';
 import '../auth_screen/auth_common.dart';
 
 class MyDetailScreen extends StatefulWidget {
@@ -10,54 +14,179 @@ class MyDetailScreen extends StatefulWidget {
 
 class _MyDetailScreenState extends State<MyDetailScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _name = TextEditingController(text: 'Cody Fisher');
-  final _email = TextEditingController(text: 'cody.fisher45@example.com');
-  final _dob = TextEditingController(text: '12/07/1990');
+
+  final _name = TextEditingController();
+  final _email = TextEditingController();
+  final _dob = TextEditingController();
+  final _phone = TextEditingController();
+
   String _gender = 'Male';
-  final _phone = TextEditingController(text: '+1 234 453 231 506');
+  bool _filledOnce = false;
 
   @override
-  void dispose() { _name.dispose(); _email.dispose(); _dob.dispose(); _phone.dispose(); super.dispose(); }
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AccountProvider>().loadProfile();
+    });
+  }
+
+  @override
+  void dispose() {
+    _name.dispose();
+    _email.dispose();
+    _dob.dispose();
+    _phone.dispose();
+    super.dispose();
+  }
+
+  void _fillForm(AccountProfile p) {
+    _name.text = p.fullName ?? '';
+    _email.text = p.email ?? '';
+    _dob.text = p.dateOfBirth ?? '';
+    _phone.text = p.phone ?? '';
+
+    final g = (p.gender ?? '').toLowerCase();
+    _gender = g == 'female'
+        ? 'Female'
+        : g == 'male'
+        ? 'Male'
+        : 'Other';
+  }
+
+  Future<void> _pickDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.tryParse(_dob.text) ?? DateTime(2000),
+      firstDate: DateTime(1950),
+      lastDate: DateTime.now(),
+    );
+
+    if (picked != null) {
+      _dob.text =
+      "${picked.year.toString().padLeft(4, '0')}-"
+          "${picked.month.toString().padLeft(2, '0')}-"
+          "${picked.day.toString().padLeft(2, '0')}";
+    }
+  }
+
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final provider = context.read<AccountProvider>();
+
+    final profile = AccountProfile(
+      fullName: _name.text.trim(),
+      dateOfBirth: _dob.text.trim(),
+      gender: _gender,
+      phone: _phone.text.trim(),
+    );
+
+    await provider.updateProfile(profile);
+
+    if (!mounted) return;
+
+    if (provider.error != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(provider.error!)),
+      );
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Đã lưu thông tin')),
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
+    final account = context.watch<AccountProvider>();
+
+    if (account.isLoading && account.profile == null) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (account.profile != null && !_filledOnce) {
+      _fillForm(account.profile!);
+      _filledOnce = true; // chỉ fill 1 lần
+    }
+
     return Scaffold(
       appBar: const AppBackBar(title: 'My Details'),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
-          child: Column(children: [
-            TextFormField(decoration: AppTheme.input('Full Name'), controller: _name),
-            const SizedBox(height: 12),
-            TextFormField(decoration: AppTheme.input('Email Address'), controller: _email, keyboardType: TextInputType.emailAddress),
-            const SizedBox(height: 12),
-            TextFormField(
-              decoration: AppTheme.input('Date of Birth').copyWith(
-                suffixIcon: IconButton(icon: const Icon(Icons.calendar_today_outlined), onPressed: () {}),
+          child: Column(
+            children: [
+              TextFormField(
+                controller: _name,
+                decoration: AppTheme.input('Full Name'),
+                validator: (v) =>
+                (v == null || v.isEmpty) ? 'Required' : null,
               ),
-              controller: _dob,
-            ),
-            const SizedBox(height: 12),
-            DropdownButtonFormField<String>(
-              decoration: AppTheme.input('Gender'),
-              value: _gender,
-              items: const [
-                DropdownMenuItem(value: 'Male', child: Text('Male')),
-                DropdownMenuItem(value: 'Female', child: Text('Female')),
-                DropdownMenuItem(value: 'Other', child: Text('Other')),
-              ],
-              onChanged: (v) => setState(() => _gender = v ?? 'Male'),
-            ),
-            const SizedBox(height: 12),
-            TextFormField(decoration: AppTheme.input('Phone Number'), controller: _phone, keyboardType: TextInputType.phone),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              style: AppTheme.primaryButton(context),
-              onPressed: () {/* TODO: call API to update profile */},
-              child: const Text('Submit'),
-            ),
-          ]),
+              const SizedBox(height: 12),
+
+              //  Email / tên đăng nhập (chỉ hiển thị)
+              TextFormField(
+                controller: _email,
+                decoration: AppTheme.input('Email / Username'),
+                enabled: false,
+              ),
+              const SizedBox(height: 12),
+
+              //  Date picker
+              TextFormField(
+                controller: _dob,
+                readOnly: true,
+                decoration: AppTheme.input('Date of Birth').copyWith(
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.calendar_today_outlined),
+                    onPressed: _pickDate,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              DropdownButtonFormField<String>(
+                decoration: AppTheme.input('Gender'),
+                value: ['Male', 'Female', 'Other'].contains(_gender)
+                    ? _gender
+                    : 'Male',
+                items: const [
+                  DropdownMenuItem(value: 'Male', child: Text('Male')),
+                  DropdownMenuItem(value: 'Female', child: Text('Female')),
+                  DropdownMenuItem(value: 'Other', child: Text('Other')),
+                ],
+                onChanged: (v) => setState(() => _gender = v ?? 'Male'),
+              ),
+
+              const SizedBox(height: 12),
+
+              TextFormField(
+                controller: _phone,
+                decoration: AppTheme.input('Phone Number'),
+                keyboardType: TextInputType.phone,
+              ),
+              const SizedBox(height: 20),
+
+              ElevatedButton(
+                style: AppTheme.primaryButton(context),
+                onPressed: account.isLoading ? null : _submit,
+                child: account.isLoading
+                    ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+                    : const Text('Submit'),
+              ),
+            ],
+          ),
         ),
       ),
     );

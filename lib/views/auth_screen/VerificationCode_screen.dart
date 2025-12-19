@@ -89,23 +89,40 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
   Future<void> _resend() async {
     final auth = context.read<AuthProvider>();
     final email = widget.email;
+    final otp = _otp;
 
-    // signup: resend-otp
-    // reset: gọi lại forgot-password để gửi OTP reset mới
     if (widget.flow == "signup") {
-      await auth.resendOtp(email);
+      // Signup: xác thực OTP
+      if (otp.length != 4) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Mã OTP không hợp lệ')),
+        );
+        return;
+      }
+
+      await auth.verifyOtp(
+        email: email,
+        code: otp,
+      );
     } else {
+      // Forgot password: gửi lại OTP
       await auth.forgotPassword(email);
     }
 
     if (!mounted) return;
 
     if (auth.error != null) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(auth.error!)));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(auth.error!)),
+      );
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Resent code')));
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Thao tác thành công')),
+    );
   }
+
 
   @override
   Widget build(BuildContext context) {
