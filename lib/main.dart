@@ -1,3 +1,4 @@
+
 // import 'package:flutter/material.dart';
 // import 'views/auth_screen/login_screen.dart';
 // import 'views/auth_screen/signUp_screen.dart';
@@ -89,8 +90,10 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.black),
         fontFamily: 'Roboto',
       ),
-      initialRoute: ResetPassScreen.routeName,
+
+      //  dùng initialRoute thay vì home để quản lý điều hướng rõ ràng
       initialRoute: LoginScreen.routeName,
+
       routes: {
         LoginScreen.routeName: (_) => const LoginScreen(),
         SignUpScreen.routeName: (_) => const SignUpScreen(),
