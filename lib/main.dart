@@ -56,6 +56,8 @@ import 'services/auth_service.dart';
 import 'state/auth_provider.dart';
 import 'state/account_provider.dart';
 import 'state/product_provider.dart';
+import 'state/saved_provider.dart';
+import 'state/cart_provider.dart';
 
 import 'views/auth_screen/login_screen.dart';
 import 'views/auth_screen/signUp_screen.dart';
@@ -63,6 +65,9 @@ import 'views/auth_screen/forgotPass_screen.dart';
 import 'views/auth_screen/VerificationCode_screen.dart';
 import 'views/auth_screen/ResetPass_screen.dart';
 import 'views/home_screen/home_screen.dart';
+import 'views/home_screen/notifications_screen.dart';
+import 'views/savedItems_screen/saved_screen.dart';
+import 'views/cart_screen/cart_screen.dart';
 
 void main() {
   runApp(
@@ -79,6 +84,16 @@ void main() {
         ChangeNotifierProvider(
             create: (_) => ProductProvider(),
         ),
+
+        ChangeNotifierProvider(
+          create: (_) => SavedProvider(),
+        ),
+
+        ChangeNotifierProvider(
+          create: (_) => CartProvider(),
+        ),
+
+
       ],
       child: const MyApp(),
     ),
@@ -110,6 +125,9 @@ class MyApp extends StatelessWidget {
         ForgotPassScreen.routeName: (_) => const ForgotPassScreen(),
         ResetPassScreen.routeName: (_) => const ResetPassScreen(),
         HomeScreen.routeName: (_) => const HomeScreen(),
+        NotificationsScreen.routeName: (_) => const NotificationsScreen(),
+        SavedScreen.routeName: (_) => const SavedScreen(),
+        CartScreen.routeName: (_) => const CartScreen(),
       },
 
       onGenerateRoute: (settings) {

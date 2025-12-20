@@ -21,6 +21,8 @@ class NotifSection {
 }
 
 class NotificationsScreen extends StatelessWidget {
+  static const routeName = '/notifications';
+
   /// Nếu để trống (mặc định) -> hiện empty-state
   final List<NotifSection> sections;
   const NotificationsScreen({super.key, this.sections = const []});
