@@ -3,6 +3,7 @@ import '../models/product.dart';
 import '../models/home_models.dart';
 import '../models/product_detail.dart';
 import '../models/price_response.dart';
+import '../models/product_recommend.dart';
 import 'api_client.dart';
 
 class ProductService {
@@ -67,5 +68,15 @@ class ProductService {
           '?sanPhamId=$sanPhamId&mauId=$mauId&sizeId=$sizeId',
     );
     return PriceResponse.fromJson(data).price;
+  }
+
+// ================= GỢI Ý SP TƯƠNG TỰ =================
+  static Future<List<ProductRecommend>> getRecommendations(int productId) async {
+    final data = await ApiClient.get(
+      '/api/Product/$productId/recommendations',
+    );
+    return (data as List)
+        .map((e) => ProductRecommend.fromJson(e))
+        .toList();
   }
 }
