@@ -66,76 +66,153 @@ class _SignUpScreenState extends State<SignUpScreen> {
     final auth = context.watch<AuthProvider>();
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF7F7F7),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 12),
-              Text('Create an account',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700)),
-              const SizedBox(height: 6),
-              const Text("Let's create your account.", style: TextStyle(color: AppTheme.lightText)),
-              const SizedBox(height: 20),
-              Form(
-                key: _formKey,
-                onChanged: () => setState(() {}),
-                child: Column(children: [
-                  TextFormField(
-                    controller: _fullName,
-                    textCapitalization: TextCapitalization.words,
-                    decoration: AppTheme.input('Full Name', hint: 'Enter your full name'),
-                    validator: (v) => (v == null || v.trim().length < 2) ? 'Name is too short' : null,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 420),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 20),
+
+                  Text(
+                    'Create an account',
+                    style: Theme.of(context)
+                        .textTheme
+                        .headlineSmall
+                        ?.copyWith(fontWeight: FontWeight.w700),
                   ),
-                  const SizedBox(height: 14),
-                  TextFormField(
-                    controller: _email,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: AppTheme.input('Email', hint: 'Enter your email address'),
-                    validator: emailValidator,
+                  const SizedBox(height: 8),
+                  const Text(
+                    "Let's create your account.",
+                    style: TextStyle(color: AppTheme.lightText),
                   ),
-                  const SizedBox(height: 14),
-                  TextFormField(
-                    controller: _password,
-                    obscureText: _obscure,
-                    decoration: AppTheme.input('Password', hint: 'Enter your password').copyWith(
-                      suffixIcon: IconButton(
-                        icon: Icon(_obscure ? Icons.visibility_off : Icons.visibility),
-                        onPressed: () => setState(() => _obscure = !_obscure),
+
+                  const SizedBox(height: 28),
+
+                  Card(
+                    elevation: 3,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Form(
+                        key: _formKey,
+                        onChanged: () => setState(() {}),
+                        child: Column(
+                          children: [
+                            TextFormField(
+                              controller: _fullName,
+                              textCapitalization: TextCapitalization.words,
+                              decoration: AppTheme.input(
+                                'Full Name',
+                                hint: 'Enter your full name',
+                              ),
+                              validator: (v) =>
+                              (v == null || v.trim().length < 2)
+                                  ? 'Name is too short'
+                                  : null,
+                            ),
+
+                            const SizedBox(height: 18),
+
+                            TextFormField(
+                              controller: _email,
+                              keyboardType: TextInputType.emailAddress,
+                              decoration: AppTheme.input(
+                                'Email',
+                                hint: 'Enter your email address',
+                              ),
+                              validator: emailValidator,
+                            ),
+
+                            const SizedBox(height: 18),
+
+                            TextFormField(
+                              controller: _password,
+                              obscureText: _obscure,
+                              decoration: AppTheme
+                                  .input(
+                                'Password',
+                                hint: 'Enter your password',
+                              )
+                                  .copyWith(
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _obscure
+                                        ? Icons.visibility_off
+                                        : Icons.visibility,
+                                  ),
+                                  onPressed: () =>
+                                      setState(() => _obscure = !_obscure),
+                                ),
+                              ),
+                              validator: passwordValidator,
+                            ),
+
+                            const SizedBox(height: 14),
+                            const TermsLine(),
+                            const SizedBox(height: 18),
+
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                onPressed:
+                                _valid && !auth.isLoading ? _submit : null,
+                                style: AppTheme.primaryButton(context),
+                                child: auth.isLoading
+                                    ? const SizedBox(
+                                  width: 22,
+                                  height: 22,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                                    : const Text('Create an Account'),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                    validator: passwordValidator,
                   ),
-                  const SizedBox(height: 10),
-                  const TermsLine(),
-                  const SizedBox(height: 10),
-                  ElevatedButton(
-                    onPressed: _valid && !auth.isLoading ? _submit : null,
-                    style: AppTheme.primaryButton(context),
-                    child: auth.isLoading
-                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                        : const Text('Create an Account'),
+
+                  const SizedBox(height: 28),
+
+                  Center(
+                    child: Wrap(
+                      spacing: 6,
+                      children: [
+                        const Text('Already have an account?'),
+                        GestureDetector(
+                          onTap: auth.isLoading
+                              ? null
+                              : () => Navigator.pushReplacementNamed(
+                            context,
+                            LoginScreen.routeName,
+                          ),
+                          child: const Text(
+                            'Log In',
+                            style: TextStyle(
+                              decoration: TextDecoration.underline,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ]),
+                ],
               ),
-              const SizedBox(height: 24),
-              Center(
-                child: Wrap(spacing: 6, children: [
-                  const Text('Already have an account?'),
-                  GestureDetector(
-                    onTap: auth.isLoading
-                        ? null
-                        : () => Navigator.pushReplacementNamed(context, LoginScreen.routeName),
-                    child: const Text('Log In',
-                        style: TextStyle(decoration: TextDecoration.underline, fontWeight: FontWeight.w600)),
-                  ),
-                ]),
-              ),
-            ],
+            ),
           ),
         ),
       ),
     );
   }
+
 }

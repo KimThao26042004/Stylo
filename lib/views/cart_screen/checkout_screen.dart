@@ -136,7 +136,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 : () {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('Đặt hàng thành công 🎉'),
+                  content: Text('Đặt hàng thành công'),
                 ),
               );
 

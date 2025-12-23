@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../auth_screen/auth_common.dart';
 import '../../data/mock_db.dart';
+import 'search_by_image_screen.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -22,6 +23,20 @@ class _SearchScreenState extends State<SearchScreen> {
     'V-neck tshirt',
     'Winter clothes',
   ];
+
+  void _openSearch() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const SearchScreen()),
+    );
+  }
+
+  void _openSearch_by_image() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const SearchByImageScreen()),
+    );
+  }
 
   @override
   void initState() {
@@ -72,14 +87,16 @@ class _SearchScreenState extends State<SearchScreen> {
         child: Column(
           children: [
             TextField(
-              controller: _controller,
-              textInputAction: TextInputAction.search,
-              onSubmitted: _submitSearch,
-              decoration: AppTheme.input('', hint: 'Search for clothes...').copyWith(
+              readOnly: true,
+              onTap: _openSearch,
+              decoration: AppTheme.input(
+                '',
+                hint: 'Search for clothes...',
+              ).copyWith(
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: IconButton(
-                  icon: const Icon(Icons.search),
-                  onPressed: () => _submitSearch(_controller.text),
+                  icon: const Icon(Icons.add_a_photo_outlined),
+                  onPressed: _openSearch_by_image,
                 ),
               ),
             ),

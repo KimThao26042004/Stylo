@@ -76,131 +76,174 @@ class _LoginScreenState extends State<LoginScreen> {
     final auth = context.watch<AuthProvider>();
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF7F7F7),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 12),
-              Text(
-                'Login to your account',
-                style: Theme.of(context)
-                    .textTheme
-                    .headlineSmall
-                    ?.copyWith(fontWeight: FontWeight.w700),
-              ),
-              const SizedBox(height: 6),
-              const Text(
-                "It's great to see you again.",
-                style: TextStyle(color: AppTheme.lightText),
-              ),
-              const SizedBox(height: 20),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 420),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 20),
 
-              Form(
-                key: _formKey,
-                onChanged: () => setState(() {}),
-                child: Column(
-                  children: [
-                    TextFormField(
-                      controller: _email,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: AppTheme.input(
-                        'Email',
-                        hint: 'Enter your email address',
-                      ),
-                      validator: emailValidator,
+                  /// ===== TITLE =====
+                  Text(
+                    'Login to your account',
+                    style: Theme.of(context)
+                        .textTheme
+                        .headlineSmall
+                        ?.copyWith(fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    "It's great to see you again.",
+                    style: TextStyle(color: AppTheme.lightText),
+                  ),
+
+                  const SizedBox(height: 28),
+
+                  /// ===== FORM CARD =====
+                  Card(
+                    elevation: 3,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    const SizedBox(height: 14),
-                    TextFormField(
-                      controller: _password,
-                      obscureText: _obscure,
-                      decoration: AppTheme
-                          .input('Password', hint: 'Enter your password')
-                          .copyWith(
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscure ? Icons.visibility_off : Icons.visibility,
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Form(
+                        key: _formKey,
+                        onChanged: () => setState(() {}),
+                        child: Column(
+                          children: [
+                            TextFormField(
+                              controller: _email,
+                              keyboardType: TextInputType.emailAddress,
+                              decoration: AppTheme.input(
+                                'Email',
+                                hint: 'Enter your email address',
+                              ),
+                              validator: emailValidator,
+                            ),
+
+                            const SizedBox(height: 18),
+
+                            TextFormField(
+                              controller: _password,
+                              obscureText: _obscure,
+                              decoration: AppTheme
+                                  .input('Password', hint: 'Enter your password')
+                                  .copyWith(
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _obscure
+                                        ? Icons.visibility_off
+                                        : Icons.visibility,
+                                  ),
+                                  onPressed: () =>
+                                      setState(() => _obscure = !_obscure),
+                                ),
+                              ),
+                              validator: passwordValidator,
+                            ),
+
+                            const SizedBox(height: 12),
+
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: TextButton(
+                                onPressed: auth.isLoading
+                                    ? null
+                                    : () => Navigator.pushNamed(
+                                  context,
+                                  ForgotPassScreen.routeName,
+                                ),
+                                child: const Text('Reset your password'),
+                              ),
+                            ),
+
+                            const SizedBox(height: 16),
+
+                            /// ===== LOGIN BUTTON =====
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                onPressed:
+                                (_valid && !auth.isLoading) ? _submit : null,
+                                style: AppTheme.primaryButton(context),
+                                child: auth.isLoading
+                                    ? const SizedBox(
+                                  width: 22,
+                                  height: 22,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                                    : const Text('Login'),
+                              ),
+                            ),
+
+                            if (auth.error != null) ...[
+                              const SizedBox(height: 12),
+                              Text(
+                                auth.error!,
+                                style: const TextStyle(color: Colors.red),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  const OrDivider(),
+                  const SizedBox(height: 16),
+
+                  GoogleBtn(
+                    label: 'Login with Google',
+                    onPressed: () {/* TODO */},
+                  ),
+                  const SizedBox(height: 12),
+                  FacebookBtn(
+                    label: 'Login with Facebook',
+                    onPressed: () {/* TODO */},
+                  ),
+
+                  const SizedBox(height: 28),
+
+                  Center(
+                    child: Wrap(
+                      spacing: 6,
+                      children: [
+                        const Text("Don't have an account?"),
+                        GestureDetector(
+                          onTap: auth.isLoading
+                              ? null
+                              : () => Navigator.pushReplacementNamed(
+                            context,
+                            SignUpScreen.routeName,
                           ),
-                          onPressed: () =>
-                              setState(() => _obscure = !_obscure),
+                          child: const Text(
+                            'Join',
+                            style: TextStyle(
+                              decoration: TextDecoration.underline,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ),
-                      ),
-                      validator: passwordValidator,
+                      ],
                     ),
-                    const SizedBox(height: 10),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: auth.isLoading
-                            ? null
-                            : () => Navigator.pushNamed(
-                          context,
-                          ForgotPassScreen.routeName,
-                        ),
-                        child: const Text('Reset your password'),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-
-                    ElevatedButton(
-                      onPressed: (_valid && !auth.isLoading) ? _submit : null,
-                      style: AppTheme.primaryButton(context),
-                      child: auth.isLoading
-                          ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child:
-                        CircularProgressIndicator(strokeWidth: 2),
-                      )
-                          : const Text('Login'),
-                    ),
-
-                    if (auth.error != null) ...[
-                      const SizedBox(height: 10),
-                      Text(
-                        auth.error!,
-                        style: const TextStyle(color: Colors.red),
-                      ),
-                    ],
-                  ],
-                ),
+                  ),
+                ],
               ),
-
-              const SizedBox(height: 16),
-              const OrDivider(),
-              const SizedBox(height: 12),
-              GoogleBtn(label: 'Login with Google', onPressed: () {/* TODO */}),
-              const SizedBox(height: 10),
-              FacebookBtn(label: 'Login with Facebook', onPressed: () {/* TODO */}),
-              const SizedBox(height: 24),
-              Center(
-                child: Wrap(
-                  spacing: 6,
-                  children: [
-                    const Text("Don't have an account?"),
-                    GestureDetector(
-                      onTap: auth.isLoading
-                          ? null
-                          : () => Navigator.pushReplacementNamed(
-                        context,
-                        SignUpScreen.routeName,
-                      ),
-                      child: const Text(
-                        'Join',
-                        style: TextStyle(
-                          decoration: TextDecoration.underline,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
     );
   }
+
 }

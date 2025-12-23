@@ -17,7 +17,8 @@ class _ResetPassScreenState extends State<ResetPassScreen> {
   final _formKey = GlobalKey<FormState>();
   final _pass1 = TextEditingController();
   final _pass2 = TextEditingController();
-  bool _ob1 = true, _ob2 = true;
+  bool _ob1 = true,
+      _ob2 = true;
 
   bool get _valid => _formKey.currentState?.validate() == true;
 
@@ -34,7 +35,10 @@ class _ResetPassScreenState extends State<ResetPassScreen> {
     final auth = context.read<AuthProvider>();
 
     // lấy email từ arguments nếu có, không có thì lấy trong provider
-    final argEmail = ModalRoute.of(context)?.settings.arguments as String?;
+    final argEmail = ModalRoute
+        .of(context)
+        ?.settings
+        .arguments as String?;
     final email = argEmail ?? auth.email ?? "";
 
     if (email.isEmpty) {
@@ -58,7 +62,8 @@ class _ResetPassScreenState extends State<ResetPassScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Password updated')),
     );
-    Navigator.pushNamedAndRemoveUntil(context, LoginScreen.routeName, (_) => false);
+    Navigator.pushNamedAndRemoveUntil(
+        context, LoginScreen.routeName, (_) => false);
   }
 
   @override
@@ -66,62 +71,117 @@ class _ResetPassScreenState extends State<ResetPassScreen> {
     final auth = context.watch<AuthProvider>();
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF7F7F7),
       appBar: const AppBackBar(title: 'Reset Password'),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('Set the new password',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
-            const SizedBox(height: 6),
-            const Text(
-              'Set the new password for your account so you can login and access all the features.',
-              style: TextStyle(color: AppTheme.lightText),
-            ),
-            const SizedBox(height: 20),
-            Form(
-              key: _formKey,
-              onChanged: () => setState(() {}),
-              child: Column(children: [
-                TextFormField(
-                  controller: _pass1,
-                  obscureText: _ob1,
-                  decoration: AppTheme.input('Password', hint: '********').copyWith(
-                    suffixIcon: IconButton(
-                      icon: Icon(_ob1 ? Icons.visibility_off : Icons.visibility),
-                      onPressed: () => setState(() => _ob1 = !_ob1),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 420),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Set the new password',
+                    style: Theme
+                        .of(context)
+                        .textTheme
+                        .titleLarge
+                        ?.copyWith(fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Set the new password for your account so you can login '
+                        'and access all the features.',
+                    style: TextStyle(color: AppTheme.lightText),
+                  ),
+
+                  const SizedBox(height: 28),
+
+                  Card(
+                    elevation: 3,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Form(
+                        key: _formKey,
+                        onChanged: () => setState(() {}),
+                        child: Column(
+                          children: [
+                            TextFormField(
+                              controller: _pass1,
+                              obscureText: _ob1,
+                              decoration: AppTheme
+                                  .input('Password', hint: '********')
+                                  .copyWith(
+                                suffixIcon: IconButton(
+                                  icon: Icon(_ob1
+                                      ? Icons.visibility_off
+                                      : Icons.visibility),
+                                  onPressed: () =>
+                                      setState(() => _ob1 = !_ob1),
+                                ),
+                              ),
+                              validator: passwordValidator,
+                            ),
+
+                            const SizedBox(height: 18),
+
+                            TextFormField(
+                              controller: _pass2,
+                              obscureText: _ob2,
+                              decoration: AppTheme
+                                  .input('Confirm Password', hint: '********')
+                                  .copyWith(
+                                suffixIcon: IconButton(
+                                  icon: Icon(_ob2
+                                      ? Icons.visibility_off
+                                      : Icons.visibility),
+                                  onPressed: () =>
+                                      setState(() => _ob2 = !_ob2),
+                                ),
+                              ),
+                              validator: (v) {
+                                final base = passwordValidator(v);
+                                if (base != null) return base;
+                                if (v != _pass1.text) {
+                                  return 'Password does not match';
+                                }
+                                return null;
+                              },
+                            ),
+
+                            const SizedBox(height: 22),
+
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                onPressed:
+                                _valid && !auth.isLoading ? _continue : null,
+                                style: AppTheme.primaryButton(context),
+                                child: auth.isLoading
+                                    ? const SizedBox(
+                                  width: 22,
+                                  height: 22,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                                    : const Text('Continue'),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
-                  validator: passwordValidator,
-                ),
-                const SizedBox(height: 14),
-                TextFormField(
-                  controller: _pass2,
-                  obscureText: _ob2,
-                  decoration: AppTheme.input('Password', hint: '********').copyWith(
-                    suffixIcon: IconButton(
-                      icon: Icon(_ob2 ? Icons.visibility_off : Icons.visibility),
-                      onPressed: () => setState(() => _ob2 = !_ob2),
-                    ),
-                  ),
-                  validator: (v) {
-                    final base = passwordValidator(v);
-                    if (base != null) return base;
-                    if (v != _pass1.text) return 'Password does not match';
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 14),
-                ElevatedButton(
-                  onPressed: _valid && !auth.isLoading ? _continue : null,
-                  style: AppTheme.primaryButton(context),
-                  child: auth.isLoading
-                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                      : const Text('Continue'),
-                ),
-              ]),
+                ],
+              ),
             ),
-          ]),
+          ),
         ),
       ),
     );

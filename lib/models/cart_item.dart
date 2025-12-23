@@ -9,7 +9,6 @@ class CartItem {
   final int sizeId;
   final int colorId;
 
-  // 👉 THÊM 2 FIELD NÀY
   final String sizeName;   // ví dụ: "L"
   final String colorName;  // ví dụ: "Black"
 
@@ -34,4 +33,6 @@ class CartItem {
       colorName: colorName,
     );
   }
+
+
 }
