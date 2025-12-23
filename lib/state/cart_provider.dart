@@ -89,4 +89,13 @@ class CartProvider extends ChangeNotifier {
     _items.clear();
     notifyListeners();
   }
+
+  // Map<String, dynamic> toCheckoutPayload(int khachHangId) {
+  //   return {
+  //     'khachHangId': khachHangId,
+  //     'kenhBan': 'ONLINE',
+  //     'phiVanChuyen': shippingFee,
+  //     'items': _items.map((e) => e.toCheckoutJson()).toList(),
+  //   };
+  // }
 }

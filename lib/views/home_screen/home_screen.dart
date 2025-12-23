@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../auth_screen/auth_common.dart';
 import 'notifications_screen.dart';
 import 'search_screen.dart';
+import 'search_by_image_screen.dart';
 
 import '../../state/product_provider.dart';
 import '../../models/product.dart';
@@ -47,6 +48,13 @@ class _HomeScreenState extends State<HomeScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const SearchScreen()),
+    );
+  }
+
+  void _openSearch_by_image() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const SearchByImageScreen()),
     );
   }
 
@@ -134,20 +142,17 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           children: [
             /// ===== SEARCH =====
-            GestureDetector(
+            TextField(
+              readOnly: true,
               onTap: _openSearch,
-              child: AbsorbPointer(
-                child: TextField(
-                  decoration: AppTheme.input(
-                    '',
-                    hint: 'Search for clothes...',
-                  ).copyWith(
-                    prefixIcon: const Icon(Icons.search),
-                    suffixIcon: IconButton(
-                      onPressed: _openSearch,
-                      icon: const Icon(Icons.tune),
-                    ),
-                  ),
+              decoration: AppTheme.input(
+                '',
+                hint: 'Search for clothes...',
+              ).copyWith(
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.add_a_photo_outlined),
+                  onPressed: _openSearch_by_image,
                 ),
               ),
             ),

@@ -123,54 +123,119 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF7F7F7),
       appBar: const AppBackBar(title: 'Verification Code'),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('Enter 4 Digit Code',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
-            const SizedBox(height: 6),
-            RichText(
-              text: TextSpan(
-                style: const TextStyle(color: AppTheme.lightText),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 420),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const TextSpan(text: 'Enter 4 digit code that you receive on your email ('),
-                  TextSpan(
-                    text: widget.email.isEmpty ? 'your@email.com' : widget.email,
-                    style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w600),
+                  Text(
+                    'Enter 4 Digit Code',
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleLarge
+                        ?.copyWith(fontWeight: FontWeight.w700),
                   ),
-                  const TextSpan(text: '). '),
+                  const SizedBox(height: 8),
+
+                  RichText(
+                    text: TextSpan(
+                      style: const TextStyle(color: AppTheme.lightText),
+                      children: [
+                        const TextSpan(
+                          text:
+                          'Enter 4 digit code that you receive on your email ',
+                        ),
+                        TextSpan(
+                          text: widget.email.isEmpty
+                              ? 'your@email.com'
+                              : widget.email,
+                          style: const TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const TextSpan(text: '.'),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 28),
+
+                  Card(
+                    elevation: 3,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: List.generate(
+                              4,
+                                  (i) => OtpBox(controller: _cells[i]),
+                            ),
+                          ),
+
+                          const SizedBox(height: 16),
+
+                          Row(
+                            children: [
+                              const Text(
+                                "Email not received?",
+                                style:
+                                TextStyle(color: AppTheme.lightText),
+                              ),
+                              TextButton(
+                                onPressed:
+                                auth.isLoading ? null : _resend,
+                                child: const Text('Resend code'),
+                              ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 12),
+
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed:
+                              auth.isLoading ? null : _continue,
+                              style: AppTheme.primaryButton(context),
+                              child: auth.isLoading
+                                  ? const SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                                  : const Text('Continue'),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
-            const SizedBox(height: 18),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: List.generate(4, (i) => OtpBox(controller: _cells[i])),
-            ),
-            const SizedBox(height: 10),
-            Row(children: [
-              const Text("Email not received?", style: TextStyle(color: AppTheme.lightText)),
-              TextButton(onPressed: auth.isLoading ? null : _resend, child: const Text('Resend code')),
-            ]),
-            const SizedBox(height: 8),
-            ElevatedButton(
-              onPressed: auth.isLoading ? null : _continue,
-              style: AppTheme.primaryButton(context),
-              child: auth.isLoading
-                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                  : const Text('Continue'),
-            ),
-          ]),
+          ),
         ),
       ),
     );
   }
+
 }

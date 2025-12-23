@@ -9,8 +9,24 @@ class AccountProvider extends ChangeNotifier {
   AccountProfile? profile;
   List<AccountAddress> addresses = [];
 
+  String? _token;
+  int? _userId;
+
+  String? get token => _token;
+  int? get userId => _userId;
+
   bool isLoading = false;
   String? error;
+
+  /// Gọi sau khi login
+  void setAuth({
+    required String token,
+    required int userId,
+  }) {
+    _token = token;
+    _userId = userId;
+    notifyListeners();
+  }
 
   Future<void> loadProfile() async {
     try {
@@ -89,7 +105,6 @@ class AccountProvider extends ChangeNotifier {
       notifyListeners();
 
       await _service.setDefaultAddress(id);
-
       await loadAddresses();
     } catch (e) {
       error = e.toString();
@@ -98,7 +113,6 @@ class AccountProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
-
 
   Future<void> deleteAddress(int id) async {
     await _service.deleteAddress(id);

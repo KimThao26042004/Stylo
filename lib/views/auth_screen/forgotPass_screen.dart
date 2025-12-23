@@ -58,42 +58,86 @@ class _ForgotPassScreenState extends State<ForgotPassScreen> {
     final auth = context.watch<AuthProvider>();
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF7F7F7),
       appBar: const AppBackBar(title: 'Forgot Password'),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('Enter your email',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
-            const SizedBox(height: 6),
-            const Text(
-              'Enter your email for the verification process. We will send 4 digits code to your email.',
-              style: TextStyle(color: AppTheme.lightText),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 420),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Enter your email',
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleLarge
+                        ?.copyWith(fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Enter your email for the verification process. '
+                        'We will send 4 digits code to your email.',
+                    style: TextStyle(color: AppTheme.lightText),
+                  ),
+
+                  const SizedBox(height: 28),
+
+                  Card(
+                    elevation: 3,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Form(
+                        key: _formKey,
+                        onChanged: () => setState(() {}),
+                        child: Column(
+                          children: [
+                            TextFormField(
+                              controller: _email,
+                              keyboardType: TextInputType.emailAddress,
+                              decoration: AppTheme.input(
+                                'Email',
+                                hint: 'you@example.com',
+                              ),
+                              validator: emailValidator,
+                            ),
+
+                            const SizedBox(height: 20),
+
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                onPressed:
+                                _valid && !auth.isLoading ? _sendCode : null,
+                                style: AppTheme.primaryButton(context),
+                                child: auth.isLoading
+                                    ? const SizedBox(
+                                  width: 22,
+                                  height: 22,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                                    : const Text('Send Code'),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 20),
-            Form(
-              key: _formKey,
-              onChanged: () => setState(() {}),
-              child: Column(children: [
-                TextFormField(
-                  controller: _email,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: AppTheme.input('Email', hint: 'you@example.com'),
-                  validator: emailValidator,
-                ),
-                const SizedBox(height: 14),
-                ElevatedButton(
-                  onPressed: _valid && !auth.isLoading ? _sendCode : null,
-                  style: AppTheme.primaryButton(context),
-                  child: auth.isLoading
-                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                      : const Text('Send Code'),
-                ),
-              ]),
-            ),
-          ]),
+          ),
         ),
       ),
     );
   }
+
 }
