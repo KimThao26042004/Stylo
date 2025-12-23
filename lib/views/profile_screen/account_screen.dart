@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../auth_screen/auth_common.dart';
 import '../order_screen/myOrders_screen.dart';
+import 'changePassword_screen.dart';
 import 'myDetail_screen.dart';
 import 'setupNotification_screen.dart';
 import '../cart_screen/address_screen.dart';
@@ -73,6 +74,13 @@ class _AccountScreenState extends State<AccountScreen> {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const MyDetailScreen()),
+            );
+          }),
+          // Change Password
+          _tile(context, Icons.lock_outline, 'Change Password', () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ChangePasswordScreen()),
             );
           }),
           _tile(context, Icons.home_outlined, 'Address Book', () {

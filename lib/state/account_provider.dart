@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import '../services/account_service.dart';
 import '../models/account_profile.dart';
@@ -53,6 +54,28 @@ class AccountProvider extends ChangeNotifier {
       profile = await _service.getProfile();
     } catch (e) {
       error = e.toString();
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> changePassword(String oldPass, String newPass) async {
+    try {
+      isLoading = true;
+      error = null;
+      notifyListeners();
+
+      await _service.changePassword(oldPassword: oldPass, newPassword: newPass);
+      return true;
+    } on DioException catch (e) {
+      // Lấy thông báo lỗi từ server trả về (ví dụ: "Mật khẩu cũ không chính xác")
+      if (e.response?.data != null && e.response?.data is Map) {
+        error = e.response?.data['message'] ?? "Đã xảy ra lỗi";
+      } else {
+        error = "Lỗi kết nối server";
+      }
+      return false;
     } finally {
       isLoading = false;
       notifyListeners();
