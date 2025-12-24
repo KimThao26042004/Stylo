@@ -95,12 +95,11 @@ class _SearchByImageScreenState extends State<SearchByImageScreen> {
                       children: [
                         Expanded(
                           child: Image.network(
-                            "${ImageSearchService.baseUrl}${p.imageUrl}",
+                            "${ImageSearchService.imageBaseUrl}${p.imageUrl}",
                             fit: BoxFit.cover,
                             errorBuilder: (_, __, ___) =>
                             const Icon(Icons.broken_image),
                           )
-
                         ),
                         Padding(
                           padding: const EdgeInsets.all(8),
