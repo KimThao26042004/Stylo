@@ -79,4 +79,16 @@ class ProductService {
         .map((e) => ProductRecommend.fromJson(e))
         .toList();
   }
+
+// ================= TÌM KIẾM TỪ KHÓA =================
+  static Future<List<ProductRecommend>> searchByKeyword(String keyword) async {
+    final data = await ApiClient.get(
+      '/api/Product/search?keyword=$keyword',
+    );
+
+    return (data as List)
+        .map((e) => ProductRecommend.fromJson(e))
+        .toList();
+  }
+
 }
