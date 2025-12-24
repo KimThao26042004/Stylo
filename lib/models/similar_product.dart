@@ -13,10 +13,10 @@ class SimilarProduct {
 
   factory SimilarProduct.fromJson(Map<String, dynamic> json) {
     return SimilarProduct(
-      id: json['SanPhamID'],
-      name: json['TenSanPham'],
-      price: json['GiaBan'],
-      imageUrl: json['UrlAnh'],
+      id: json['sanPhamId'],
+      name: json['tenSanPham'],
+      price: json['giaBan'],
+      imageUrl: json['imageUrl'],
     );
   }
 }

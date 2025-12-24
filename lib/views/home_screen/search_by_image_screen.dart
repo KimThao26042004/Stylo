@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -13,7 +12,8 @@ class SearchByImageScreen extends StatefulWidget {
 }
 
 class _SearchByImageScreenState extends State<SearchByImageScreen> {
-  File? _image;
+  XFile? _image;
+
   bool _loading = false;
   List<SimilarProduct> _results = [];
 
@@ -24,10 +24,11 @@ class _SearchByImageScreenState extends State<SearchByImageScreen> {
     if (picked == null) return;
 
     setState(() {
-      _image = File(picked.path);
+      _image = picked; // KHÔNG convert sang File
     });
 
     await _search();
+
   }
 
   Future<void> _search() async {
@@ -39,11 +40,11 @@ class _SearchByImageScreenState extends State<SearchByImageScreen> {
       final data = await ImageSearchService.searchByImage(_image!);
       setState(() => _results = data);
     } catch (e) {
+      debugPrint("SEARCH IMAGE ERROR: $e");
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Search failed")),
+        SnackBar(content: Text("Search failed: $e")),
       );
     }
-
     setState(() => _loading = false);
   }
 
@@ -94,10 +95,12 @@ class _SearchByImageScreenState extends State<SearchByImageScreen> {
                       children: [
                         Expanded(
                           child: Image.network(
-                            "http://10.0.2.2:8000${p.imageUrl}",
+                            "${ImageSearchService.baseUrl}${p.imageUrl}",
                             fit: BoxFit.cover,
-                            width: double.infinity,
-                          ),
+                            errorBuilder: (_, __, ___) =>
+                            const Icon(Icons.broken_image),
+                          )
+
                         ),
                         Padding(
                           padding: const EdgeInsets.all(8),
