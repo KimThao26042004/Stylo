@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import '../services/auth_service.dart';
 import '../services/secure_storage.dart';
@@ -69,14 +70,21 @@ class AuthProvider extends ChangeNotifier {
       );
 
       final token = res['token'];
-      if (token == null) {
-        throw Exception('Token not found');
-      }
+      if (token == null) throw Exception('Token not found');
 
       await SecureStorage.saveToken(token);
 
+    } on DioException catch (e) {
+      // TÁI SỬ DỤNG LOGIC BẮT LỖI TỪ MIDDLEWARE .NET
+      if (e.response != null && e.response?.data is Map) {
+        // Lấy câu "Sai email hoặc mật khẩu" từ Backend gửi về
+        error = e.response?.data['message'] ?? "Đăng nhập thất bại";
+      } else {
+        error = "Lỗi kết nối server hoặc sai thông tin đăng nhập";
+      }
     } catch (e) {
-      error = e.toString();
+      // Bắt các lỗi logic khác (ví dụ: lỗi lưu SecureStorage)
+      error = "Đã xảy ra lỗi: ${e.toString()}";
     } finally {
       isLoading = false;
       notifyListeners();
