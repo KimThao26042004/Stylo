@@ -23,6 +23,22 @@ class AccountService {
     );
   }
 
+  /* ================= AUTH / SECURITY ================= */
+
+  /// POST /api/Account/change-password
+  Future<void> changePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    await _api.dio.post(
+      "/api/Account/change-password",
+      data: {
+        "oldPassword": oldPassword,
+        "newPassword": newPassword,
+      },
+    );
+  }
+
   /* ================= ADDRESSES ================= */
 
   /// GET /api/Account/addresses
