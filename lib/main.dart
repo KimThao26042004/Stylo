@@ -50,6 +50,7 @@
 // }
 
 
+import 'package:fashion_shop/state/order_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'services/auth_service.dart';
@@ -92,6 +93,8 @@ void main() {
         ChangeNotifierProvider(
           create: (_) => CartProvider(),
         ),
+
+        ChangeNotifierProvider(create: (_) => OrderProvider()),
 
 
       ],
