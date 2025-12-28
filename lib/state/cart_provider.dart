@@ -40,7 +40,50 @@ class CartProvider extends ChangeNotifier {
           product: product,
           bienTheId: bienTheId, // LƯU VÀO CART ITEM
           quantity: 1,
-          price: price,
+          price: price.toDouble(),
+          sizeId: sizeId,
+          sizeName: sizeName,
+          colorId: colorId,
+          colorName: colorName,
+        ),
+      );
+    }
+    notifyListeners();
+  }
+
+  void addFromReorder({
+    required int bienTheId,
+    required int sanPhamId,
+    required int sizeId,
+    required String sizeName,
+    required int colorId,
+    required String colorName,
+    required String productName,
+    required String imageUrl,
+    required int price,
+  }) {
+    final index = _items.indexWhere((e) => e.bienTheId == bienTheId);
+
+    if (index >= 0) {
+      _items[index] = _items[index].copyWith(quantity: _items[index].quantity + 1);
+    } else {
+      // CẬP NHẬT TẠI ĐÂY: Khớp chính xác với tham số của ProductDetail
+      final minimalProduct = ProductDetail(
+        sanPhamId: sanPhamId,           // Đổi từ id thành sanPhamId
+        name: productName,
+        description: "",
+        basePrice: price,               // Model của bạn dùng int basePrice
+        imageUrl: imageUrl,
+        availableColors: [],           // Khớp với tên tham số bắt buộc
+        availableSizes: [],            // Khớp với tên tham số bắt buộc
+      );
+
+      _items.add(
+        CartItem(
+          product: minimalProduct,
+          bienTheId: bienTheId,
+          quantity: 1,
+          price: price.toDouble(),      // Chuyển sang double nếu CartItem dùng double
           sizeId: sizeId,
           sizeName: sizeName,
           colorId: colorId,
@@ -126,4 +169,5 @@ class CartProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
+
 }

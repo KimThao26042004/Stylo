@@ -18,9 +18,15 @@ class OrderProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   List<OrderHistoryModel> get allOrders => _orders;
 
+// Lọc các đơn hàng đang xử lý (không phải Delivered, Failed, Returned)
   List<OrderHistoryModel> get ongoingOrders =>
-      _orders.where((o) => o.statusEnum != OrderStatus.delivered).toList();
+      _orders.where((o) =>
+      o.statusEnum != OrderStatus.delivered &&
+          o.statusEnum != OrderStatus.failed &&
+          o.statusEnum != OrderStatus.returned
+      ).toList();
 
+// Lọc các đơn hàng đã hoàn thành
   List<OrderHistoryModel> get completedOrders =>
       _orders.where((o) => o.statusEnum == OrderStatus.delivered).toList();
 
