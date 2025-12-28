@@ -10,6 +10,8 @@ class AuthProvider extends ChangeNotifier {
   bool isLoading = false;
   String? error;
 
+  String? userId;
+  int? khachHangId;
   String? email;
   String? role;
   String? token;
@@ -79,6 +81,8 @@ class AuthProvider extends ChangeNotifier {
         token = null;
         role = null;
         email = null;
+        userId = null;
+        khachHangId = null;
       });
 
   // --- CÁC HÀM CẦN XỬ LÝ RIÊNG BIỆT ---
@@ -88,11 +92,17 @@ class AuthProvider extends ChangeNotifier {
     await _run(() async {
       final res = await _service.login(email: email, password: password);
       final tokenValue = res['token'];
+      final tkIdValue = res['taiKhoanId']?.toString();
+      final khIdValue = res['khachHangId']; // Lấy ID khách hàng kiểu int
+
       if (tokenValue == null) throw Exception('Token not found');
 
       await SecureStorage.saveToken(tokenValue);
       token = tokenValue;
+      userId = tkIdValue;
+      khachHangId = khIdValue is int ? khIdValue : int.tryParse(khIdValue.toString());
       this.email = email;
+      this.role = res['role'];
     });
   }
 

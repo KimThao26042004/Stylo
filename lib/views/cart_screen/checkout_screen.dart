@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 
 import '../../state/account_provider.dart';
+import '../../state/auth_provider.dart';
 import '../../state/cart_provider.dart';
 import '../auth_screen/auth_common.dart';
 import '../cart_screen/address_screen.dart';
@@ -131,26 +132,65 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           /* ================= PLACE ORDER ================= */
           ElevatedButton(
             style: AppTheme.primaryButton(context),
-            onPressed: defaultAddress.isEmpty || cart.items.isEmpty
+            onPressed: defaultAddress.isEmpty || cart.items.isEmpty || cart.isProcessing
                 ? null
-                : () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Đặt hàng thành công'),
-                ),
-              );
+                : () async {
+              try {
+                final auth = context.read<AuthProvider>();
 
-              cart.clear();
+                // Đảm bảo lấy ID từ đúng nguồn đã đăng nhập
+                // Nếu auth.khachHangId chưa được set, thử parse từ userId (nếu userId là số)
+                int khId = auth.khachHangId ?? int.tryParse(auth.userId ?? '0') ?? 0;
 
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const MyOrdersScreen(),
-                ),
-                    (_) => false,
-              );
+                if (khId <= 0) {
+                  throw Exception("Vui lòng đăng nhập lại để xác thực thông tin khách hàng.");
+                }
+
+                // Thực hiện gọi hàm đặt hàng
+                final orderId = await context.read<CartProvider>().processOrder(
+                  khachHangId: khId,
+                  shippingFee: _shippingFee,
+                );
+
+                if (!context.mounted) return;
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Đặt hàng thành công! Mã đơn: #$orderId'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+
+                // Xóa lịch sử và về trang đơn hàng
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (_) => const MyOrdersScreen()),
+                      (route) => false,
+                );
+              } catch (e) {
+                if (!context.mounted) return;
+
+                showDialog(
+                  context: context,
+                  builder: (_) => AlertDialog(
+                    title: const Text('Lỗi đặt hàng'),
+                    content: Text(e.toString().replaceAll("Exception: ", "")),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Đóng'),
+                      ),
+                    ],
+                  ),
+                );
+              }
             },
-            child: const Text('Place Order'),
+            child: cart.isProcessing
+                ? const SizedBox(
+              height: 20, width: 20,
+              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+            )
+                : const Text('Place Order'),
           ),
         ],
       ),
