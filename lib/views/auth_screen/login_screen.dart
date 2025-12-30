@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../../state/auth_provider.dart';
 import '../home_screen/home_screen.dart';
-
 import 'auth_common.dart';
 import 'forgotPass_screen.dart';
 import 'signUp_screen.dart';
-import 'VerificationCode_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   static const String routeName = '/login';
@@ -32,15 +29,35 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  bool _shouldGoVerify(String? msg) {
-    if (msg == null) return false;
-    final m = msg.toLowerCase();
-    return m.contains('verify') ||
-        m.contains('verified') ||
-        m.contains('otp') ||
-        m.contains('not verified') ||
-        m.contains('xác thực') ||
-        m.contains('chưa xác thực');
+  // Hàm hiển thị thông báo (Dùng chung cho cả lỗi và thành công)
+  void _showStatusMessage(String message, {bool isError = true}) {
+    // Xóa SnackBar cũ trước khi hiện cái mới
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(
+              isError ? Icons.error_outline : Icons.check_circle_outline,
+              color: Colors.white,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                message,
+                style: const TextStyle(color: Colors.white, fontSize: 14),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: isError ? Colors.redAccent : Colors.green.shade600,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(20),
+        duration: const Duration(seconds: 3),
+      ),
+    );
   }
 
   Future<void> _submit() async {
@@ -56,18 +73,17 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!mounted) return;
 
     if (auth.error != null) {
-      // ❌ Chỉ hiển thị lỗi, KHÔNG chuyển OTP
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(auth.error!)),
-      );
+      _showStatusMessage(auth.error!, isError: true);
       return;
     }
 
-    // ✅ Login OK → Home
-    Navigator.pushReplacementNamed(
-      context,
-      HomeScreen.routeName,
-    );
+    // Thông báo đăng nhập thành công trước khi chuyển trang
+    _showStatusMessage('Đăng nhập thành công!', isError: false);
+
+    Future.delayed(const Duration(milliseconds: 800), () {
+      if (!mounted) return;
+      Navigator.pushReplacementNamed(context, HomeScreen.routeName);
+    });
   }
 
 
@@ -90,7 +106,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   /// ===== TITLE =====
                   Text(
-                    'Login to your account',
+                    'Đăng nhập tài khoản',
                     style: Theme.of(context)
                         .textTheme
                         .headlineSmall
@@ -98,7 +114,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    "It's great to see you again.",
+                    "Rất vui được gặp lại bạn!",
                     style: TextStyle(color: AppTheme.lightText),
                   ),
 
@@ -114,7 +130,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       padding: const EdgeInsets.all(20),
                       child: Form(
                         key: _formKey,
-                        onChanged: () => setState(() {}),
+                        onChanged: () {
+                          // Mỗi khi form thay đổi, xóa lỗi cũ trong Provider để nút bấm cập nhật trạng thái
+                          if (auth.error != null) auth.clearError();
+                          setState(() {});
+                        },
                         child: Column(
                           children: [
                             TextFormField(
@@ -122,7 +142,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               keyboardType: TextInputType.emailAddress,
                               decoration: AppTheme.input(
                                 'Email',
-                                hint: 'Enter your email address',
+                                hint: 'Nhập địa chỉ Email của bạn',
                               ),
                               validator: emailValidator,
                             ),
@@ -133,7 +153,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               controller: _password,
                               obscureText: _obscure,
                               decoration: AppTheme
-                                  .input('Password', hint: 'Enter your password')
+                                  .input('Mật khẩu', hint: 'Nhập mật kẩu của bạn')
                                   .copyWith(
                                 suffixIcon: IconButton(
                                   icon: Icon(
@@ -159,7 +179,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   context,
                                   ForgotPassScreen.routeName,
                                 ),
-                                child: const Text('Reset your password'),
+                                child: const Text('Quên mật khẩu?'),
                               ),
                             ),
 
@@ -180,17 +200,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                     strokeWidth: 2,
                                   ),
                                 )
-                                    : const Text('Login'),
+                                    : const Text('Đăng nhập'),
                               ),
                             ),
-
-                            if (auth.error != null) ...[
-                              const SizedBox(height: 12),
-                              Text(
-                                auth.error!,
-                                style: const TextStyle(color: Colors.red),
-                              ),
-                            ],
                           ],
                         ),
                       ),
@@ -203,13 +215,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 16),
 
                   GoogleBtn(
-                    label: 'Login with Google',
-                    onPressed: () {/* TODO */},
+                    label: 'Đăng nhập với Google',
+                    onPressed: () {},
                   ),
                   const SizedBox(height: 12),
                   FacebookBtn(
-                    label: 'Login with Facebook',
-                    onPressed: () {/* TODO */},
+                    label: 'Đăng nhập với Facebook',
+                    onPressed: () {},
                   ),
 
                   const SizedBox(height: 28),
@@ -218,7 +230,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Wrap(
                       spacing: 6,
                       children: [
-                        const Text("Don't have an account?"),
+                        const Text("Bạn chưa có tài khoản?"),
                         GestureDetector(
                           onTap: auth.isLoading
                               ? null
@@ -227,7 +239,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             SignUpScreen.routeName,
                           ),
                           child: const Text(
-                            'Join',
+                            'Đăng ký ngay',
                             style: TextStyle(
                               decoration: TextDecoration.underline,
                               fontWeight: FontWeight.w600,

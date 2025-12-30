@@ -1,6 +1,8 @@
 import 'api_client.dart';
 import '../models/account_profile.dart';
 import '../models/account_address.dart';
+import 'package:dio/dio.dart';
+
 
 class AccountService {
   final ApiClient _api = ApiClient();
@@ -18,6 +20,22 @@ class AccountService {
     await _api.dio.put(
       "/api/Account/profile",
       data: profile.toJson(),
+    );
+  }
+
+  /* ================= AUTH / SECURITY ================= */
+
+  /// POST /api/Account/change-password
+  Future<void> changePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    await _api.dio.post(
+      "/api/Account/change-password",
+      data: {
+        "oldPassword": oldPassword,
+        "newPassword": newPassword,
+      },
     );
   }
 
@@ -50,7 +68,24 @@ class AccountService {
   }
 
   /// DELETE /api/Account/addresses/{id}
-  Future<void> deleteAddress(int id) async {
-    await _api.dio.delete("/api/Account/addresses/$id");
+  // Future<void> deleteAddress(int id) async {
+  //   await _api.dio.delete("/api/Account/addresses/$id");
+  // }
+  Future<bool> deleteAddress(int id) async {
+    try {
+      print("Đang gọi API xóa ID: $id"); // Debug xem id có phải là 0 không
+      final response = await _api.dio.delete("/api/Account/addresses/$id");
+
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        return true;
+      }
+      return false;
+    } on DioException catch (e) {
+      print("Lỗi xóa địa chỉ: ${e.response?.data}");
+      return false;
+    } catch (e) {
+      print("Lỗi không xác định: $e");
+      return false;
+    }
   }
 }

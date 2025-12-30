@@ -1,34 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../models/order_history_model.dart';
+import '../../state/auth_provider.dart';
+import '../../state/cart_provider.dart';
+import '../../state/order_provider.dart';
 import '../auth_screen/auth_common.dart';
+import '../cart_screen/cart_screen.dart';
+import '../products_screen/productDetail_screen.dart';
+import 'orderDetail_screen.dart';
 import 'trackOrder_screen.dart';
-
-enum OrderStatus { packing, picked, inTransit, delivered }
-
-class OrderItemView {
-  final String name;
-  final String imageUrl;
-  final double price;
-  final String size;
-  OrderItemView({
-    required this.name,
-    required this.imageUrl,
-    required this.price,
-    this.size = 'M',
-  });
-}
-
-class OrderView {
-  final String id;
-  final OrderStatus status;
-  final List<OrderItemView> items;
-  OrderView({required this.id, required this.status, required this.items});
-}
-
-class Review {
-  final double rating;
-  final String comment;
-  const Review({required this.rating, required this.comment});
-}
 
 class MyOrdersScreen extends StatefulWidget {
   const MyOrdersScreen({super.key});
@@ -37,61 +17,20 @@ class MyOrdersScreen extends StatefulWidget {
   State<MyOrdersScreen> createState() => _MyOrdersScreenState();
 }
 
-class _MyOrdersScreenState extends State<MyOrdersScreen>
-    with SingleTickerProviderStateMixin {
+class _MyOrdersScreenState extends State<MyOrdersScreen> with SingleTickerProviderStateMixin {
   late TabController _tab;
-
-  // --- Mock data (sau này thay bằng API .NET) ---
-  final List<OrderView> _ongoing = [
-    OrderView(id: 'ORD-001', status: OrderStatus.inTransit, items: [
-      OrderItemView(
-        name: 'Regular Fit Slogan',
-        imageUrl: 'https://picsum.photos/seed/a/400/400',
-        price: 1190,
-      )
-    ]),
-    OrderView(id: 'ORD-002', status: OrderStatus.picked, items: [
-      OrderItemView(
-        name: 'Regular Fit Polo',
-        imageUrl: 'https://picsum.photos/seed/b/400/400',
-        price: 1100,
-      )
-    ]),
-    OrderView(id: 'ORD-003', status: OrderStatus.packing, items: [
-      OrderItemView(
-        name: 'Regular Fit Black',
-        imageUrl: 'https://picsum.photos/seed/c/400/400',
-        price: 1690,
-      )
-    ]),
-  ];
-
-  final List<OrderView> _completed = [
-    OrderView(id: 'ORD-100', status: OrderStatus.delivered, items: [
-      OrderItemView(
-        name: 'Regular Fit Slogan',
-        imageUrl: 'https://picsum.photos/seed/d/400/400',
-        price: 1190,
-      )
-    ]),
-    OrderView(id: 'ORD-101', status: OrderStatus.delivered, items: [
-      OrderItemView(
-        name: 'Regular Fit Polo',
-        imageUrl: 'https://picsum.photos/seed/e/400/400',
-        price: 1100,
-      )
-    ]),
-  ];
-
-  /// Lưu review theo orderId
-  final Map<String, Review> _reviews = {
-    'ORD-101': const Review(rating: 4.5, comment: 'Good quality!')
-  };
 
   @override
   void initState() {
     super.initState();
     _tab = TabController(length: 2, vsync: this);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final auth = context.read<AuthProvider>();
+      if (auth.token != null) {
+        context.read<OrderProvider>().fetchOrders(auth.token!);
+      }
+    });
   }
 
   @override
@@ -100,59 +39,35 @@ class _MyOrdersScreenState extends State<MyOrdersScreen>
     super.dispose();
   }
 
-  Future<void> _openReviewSheet(OrderView order) async {
-    final current = _reviews[order.id];
-    final result = await showModalBottomSheet<Review>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
-      ),
-      builder: (_) => _ReviewSheet(initial: current),
-    );
-    if (result != null) {
-      setState(() => _reviews[order.id] = result);
-    }
+  Future<void> _openReviewSheet(OrderHistoryModel order) async {
+    // Logic để mở BottomSheet review của bạn
+    debugPrint("Mở review cho đơn hàng: ${order.id}");
   }
 
   @override
   Widget build(BuildContext context) {
+    final orderProvider = context.watch<OrderProvider>();
+
     return Scaffold(
       appBar: const AppBackBar(title: 'My Orders'),
       body: Column(
         children: [
           const SizedBox(height: 8),
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 12),
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade200,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: TabBar(
-              controller: _tab,
-              indicator: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              labelColor: Colors.black,
-              unselectedLabelColor: Colors.black54,
-              tabs: const [Tab(text: 'Ongoing'), Tab(text: 'Completed')],
-            ),
-          ),
+          _buildTabBar(),
           Expanded(
-            child: TabBarView(
+            child: orderProvider.isLoading
+                ? const Center(child: CircularProgressIndicator(color: Colors.black))
+                : TabBarView(
               controller: _tab,
               children: [
-                // Ongoing
-                _ongoing.isEmpty
+                orderProvider.ongoingOrders.isEmpty
                     ? const _EmptyOrders(text: 'No Ongoing Orders!')
-                    : _OngoingList(orders: _ongoing),
-                // Completed
-                _CompletedList(
-                  orders: _completed,
-                  reviews: _reviews,
+                    : _OngoingList(orders: orderProvider.ongoingOrders),
+                orderProvider.completedOrders.isEmpty
+                    ? const _EmptyOrders(text: 'No Completed Orders!')
+                    : _CompletedList(
+                  orders: orderProvider.completedOrders,
+                  reviews: const {},
                   onLeaveReview: _openReviewSheet,
                 ),
               ],
@@ -162,11 +77,33 @@ class _MyOrdersScreenState extends State<MyOrdersScreen>
       ),
     );
   }
+
+  Widget _buildTabBar() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 12),
+      padding: const EdgeInsets.all(6),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade200,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: TabBar(
+        controller: _tab,
+        indicator: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        labelColor: Colors.black,
+        unselectedLabelColor: Colors.black54,
+        tabs: const [Tab(text: 'Ongoing'), Tab(text: 'Completed')],
+      ),
+    );
+  }
 }
 
-/* ======================= Ongoing tab ======================= */
+/* ======================= Tách các Widget thành Class để sửa lỗi defined ======================= */
+
 class _OngoingList extends StatelessWidget {
-  final List<OrderView> orders;
+  final List<OrderHistoryModel> orders;
   const _OngoingList({required this.orders});
 
   @override
@@ -176,48 +113,111 @@ class _OngoingList extends StatelessWidget {
       itemCount: orders.length,
       itemBuilder: (_, i) {
         final order = orders[i];
-        final item = order.items.first;
-        return Container(
-          margin: const EdgeInsets.symmetric(vertical: 6),
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey.shade300),
-          ),
-          child: Row(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.network(item.imageUrl, width: 72, height: 72, fit: BoxFit.cover),
+
+        // Bọc bằng GestureDetector để bắt sự kiện click toàn bộ Card
+        return GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => OrderDetailScreen(order: order),
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(item.name, style: const TextStyle(fontWeight: FontWeight.w600)),
-                  Text('Size ${item.size}', style: TextStyle(color: Colors.grey.shade600)),
-                  const SizedBox(height: 4),
-                  Text('\$ ${item.price.toInt()}', style: const TextStyle(fontWeight: FontWeight.w700)),
-                ]),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  _statusPill(order.status),
-                  const SizedBox(height: 6),
-                  OutlinedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => TrackOrderScreen(order: order)),
-                      );
-                    },
-                    style: OutlinedButton.styleFrom(minimumSize: const Size(110, 38)),
-                    child: const Text('Track Order'),
+            );
+          },
+          child: Container(
+            margin: const EdgeInsets.symmetric(vertical: 8),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(15),
+              boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4)],
+              border: Border.all(color: Colors.grey.shade300),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // HEADER: Mã đơn và Trạng thái
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text("Order #${order.id}",
+                        style: const TextStyle(fontWeight: FontWeight.bold)),
+                    _StatusPill(status: order.statusEnum),
+                  ],
+                ),
+                const Divider(),
+
+                // HIỂN THỊ TẤT CẢ SẢN PHẨM
+                ...order.items.map((item) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: Row(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(
+                          item.imageUrl,
+                          width: 72,
+                          height: 72,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              Container(
+                                width: 72,
+                                height: 72,
+                                color: Colors.grey[200],
+                                child: const Icon(Icons.broken_image,
+                                    color: Colors.grey),
+                              ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(item.name,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.w600)),
+                            Text('Size ${item.size} | Qty: ${item.quantity}',
+                                style: const TextStyle(
+                                    color: Colors.grey, fontSize: 13)),
+                            const SizedBox(height: 4),
+                            Text('\$ ${item.price.toInt()}',
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.w700)),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ],
+                )).toList(),
+
+                const Divider(),
+                // FOOTER: Tổng thanh toán đơn hàng
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text("Total: \$${order.tongThanhToan.toInt()}",
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 16)),
+                    OutlinedButton(
+                      onPressed: () {
+                        // Nút Track Order vẫn giữ chức năng chuyển đến bản đồ
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                TrackOrderScreen(order: order),
+                          ),
+                        );
+                      },
+                      style: OutlinedButton.styleFrom(
+                          minimumSize: const Size(110, 38)),
+                      child: const Text('Track Order'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -225,25 +225,10 @@ class _OngoingList extends StatelessWidget {
   }
 }
 
-Widget _statusPill(OrderStatus s) {
-  final text = switch (s) {
-    OrderStatus.packing => 'Packing',
-    OrderStatus.picked => 'Picked',
-    OrderStatus.inTransit => 'In Transit',
-    OrderStatus.delivered => 'Delivered',
-  };
-  return Container(
-    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-    decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(8)),
-    child: Text(text, style: const TextStyle(color: Colors.white)),
-  );
-}
-
-/* ======================= Completed tab ======================= */
 class _CompletedList extends StatelessWidget {
-  final List<OrderView> orders;
-  final Map<String, Review> reviews;
-  final void Function(OrderView order) onLeaveReview;
+  final List<OrderHistoryModel> orders;
+  final Map<String, dynamic> reviews;
+  final Function(OrderHistoryModel) onLeaveReview;
 
   const _CompletedList({
     required this.orders,
@@ -251,64 +236,79 @@ class _CompletedList extends StatelessWidget {
     required this.onLeaveReview,
   });
 
-  @override
-  Widget build(BuildContext context) {
-    if (orders.isEmpty) return const _EmptyOrders(text: 'No Completed Orders!');
-    return ListView.builder(
-      padding: const EdgeInsets.all(12),
-      itemCount: orders.length,
-      itemBuilder: (_, i) {
-        final order = orders[i];
-        final item = order.items.first;
-        final review = reviews[order.id];
-        return Container(
-          margin: const EdgeInsets.symmetric(vertical: 6),
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey.shade300),
-          ),
-          child: Row(
+  // Hàm xử lý logic mua lại
+  void _handleReorder(BuildContext context, OrderHistoryModel order) {
+    if (order.items.length == 1) {
+      // TH1: Chỉ có 1 sản phẩm -> Chuyển thẳng tới trang chi tiết
+      _processReorderItem(context, order.items.first);
+    } else {
+      // TH2: Nhiều sản phẩm -> Hiển thị lựa chọn
+      _showProductSelectionSheet(context, order.items);
+    }
+  }
+
+  // Hàm điều hướng (Thay ProductDetailScreen bằng tên Class thật của bạn)
+  void _processReorderItem(BuildContext context, OrderItemModel item) {
+    if (item.bienTheId != 0) {
+      final cartProvider = Provider.of<CartProvider>(context, listen: false);
+
+      // Gọi hàm add của CartProvider với đầy đủ thông số
+      cartProvider.addFromReorder(
+        bienTheId: item.bienTheId,
+        sanPhamId: item.sanPhamId, // Dùng để quay lại trang detail nếu cần
+        productName: item.name,
+        imageUrl: item.imageUrl,
+        price: item.price.toInt(),
+        sizeId: item.sizeId,
+        sizeName: item.size,
+        colorId: item.mauSac['id'] ?? 0,
+        colorName: item.mauSac['ten'] ?? 'N/A',
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Đã thêm ${item.name} vào giỏ hàng")),
+      );
+
+      // Điều hướng sang trang giỏ hàng
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const CartScreen()),
+      );
+    }
+  }
+
+  // Modal chọn sản phẩm khi đơn hàng có nhiều món
+  void _showProductSelectionSheet(BuildContext context, List<OrderItemModel> items) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.network(item.imageUrl, width: 72, height: 72, fit: BoxFit.cover),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(item.name, style: const TextStyle(fontWeight: FontWeight.w600)),
-                  Text('Size ${item.size}', style: TextStyle(color: Colors.grey.shade600)),
-                  const SizedBox(height: 4),
-                  Text('\$ ${item.price.toInt()}', style: const TextStyle(fontWeight: FontWeight.w700)),
-                ]),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.green.shade50,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.green),
-                    ),
-                    child: const Text('Completed', style: TextStyle(color: Colors.green)),
-                  ),
-                  const SizedBox(height: 6),
-                  review == null
-                      ? ElevatedButton(
-                    onPressed: () => onLeaveReview(order),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
-                      foregroundColor: Colors.white,
-                      minimumSize: const Size(120, 38),
-                    ),
-                    child: const Text('Leave Review'),
-                  )
-                      : _RatingChip(rating: review.rating),
-                ],
+              const Text("Chọn sản phẩm muốn mua lại",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 12),
+              Flexible(
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: items.length,
+                  itemBuilder: (context, index) {
+                    final item = items[index];
+                    return ListTile(
+                      leading: Image.network(item.imageUrl, width: 40, errorBuilder: (_,__,___)=> const Icon(Icons.image)),
+                      title: Text(item.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+                      subtitle: Text("Size: ${item.size} - \$${item.price.toInt()}"),
+                      onTap: () {
+                        Navigator.pop(context);
+                        _processReorderItem(context, item);
+                      },
+                    );
+                  },
+                ),
               ),
             ],
           ),
@@ -316,212 +316,223 @@ class _CompletedList extends StatelessWidget {
       },
     );
   }
-}
-
-class _RatingChip extends StatelessWidget {
-  final double rating;
-  const _RatingChip({required this.rating});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 38,
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.amber),
-        color: Colors.amber.shade50,
-      ),
-      alignment: Alignment.center,
-      child: Row(mainAxisSize: MainAxisSize.min, children: [
-        const Icon(Icons.star, size: 16, color: Colors.amber),
-        const SizedBox(width: 4),
-        Text('${rating.toStringAsFixed(1)}/5',
-            style: const TextStyle(fontWeight: FontWeight.w600)),
-      ]),
-    );
-  }
-}
+    return ListView.builder(
+      padding: const EdgeInsets.all(12),
+      itemCount: orders.length,
+      itemBuilder: (_, i) {
+        final order = orders[i];
 
-/* ======================= Empty-state ======================= */
-class _EmptyOrders extends StatelessWidget {
-  final String text;
-  const _EmptyOrders({required this.text});
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        const Divider(height: 1),
-        Expanded(
-          child: Center(
+        return GestureDetector(
+          onTap: () {
+            // Chuyển hướng sang màn hình Chi tiết đơn hàng khi click vào Card
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => OrderDetailScreen(order: order),
+              ),
+            );
+          },
+          child: Container(
+            margin: const EdgeInsets.symmetric(vertical: 8),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(15),
+              boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4)],
+              border: Border.all(color: Colors.grey.shade300),
+            ),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.inventory_2_outlined,
-                    size: 56, color: AppTheme.lightText),
-                const SizedBox(height: 12),
-                Text(text,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w700, fontSize: 16)),
-                const SizedBox(height: 6),
-                const Text("You don't have any orders at this time.",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: AppTheme.lightText)),
+                // HEADER: Mã đơn và Trạng thái
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text("Order #${order.id}", style: const TextStyle(fontWeight: FontWeight.bold)),
+                    _StatusPill(status: order.statusEnum),
+                  ],
+                ),
+                const Divider(),
+
+                // HIỂN THỊ TẤT CẢ SẢN PHẨM
+                ...order.items.map((item) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: Row(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(
+                          item.imageUrl,
+                          width: 72,
+                          height: 72,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => Container(
+                            width: 72, height: 72, color: Colors.grey[200],
+                            child: const Icon(Icons.broken_image, color: Colors.grey),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(item.name,
+                                style: const TextStyle(fontWeight: FontWeight.w600),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis),
+                            Text('Size ${item.size} | Qty: ${item.quantity}',
+                                style: const TextStyle(color: Colors.grey, fontSize: 13)),
+                            const SizedBox(height: 4),
+                            Text('\$ ${item.price.toInt()}',
+                                style: const TextStyle(fontWeight: FontWeight.w700)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                )).toList(),
+
+                const Divider(),
+                // FOOTER: Tổng tiền bên trái - Các nút nằm gọn bên phải (Đã đồng bộ kích thước)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // TỔNG TIỀN
+                    Text(
+                      "Total: \$${order.tongThanhToan.toInt()}",
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+
+                    // CỤM NÚT (BÊN PHẢI)
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Nút Review - Outlined giống Track Order nhưng kích thước đồng bộ
+                        OutlinedButton(
+                          onPressed: () => onLeaveReview(order),
+                          style: OutlinedButton.styleFrom(
+                            minimumSize: const Size(100, 38), // Chiều cao 38 giống Ongoing
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            side: BorderSide(color: Colors.grey.shade400),
+                          ),
+                          child: const Text(
+                            'Review',
+                            style: TextStyle(color: Colors.black),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+
+                        // Nút Re-order - Elevated để tạo điểm nhấn nhưng vẫn cao 38
+                        ElevatedButton(
+                          onPressed: () => _handleReorder(context, order),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.black,
+                            foregroundColor: Colors.white,
+                            minimumSize: const Size(100, 38), // Chiều cao 38 giống Ongoing
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            elevation: 0, // Để phẳng nếu muốn giao diện tối giản
+                          ),
+                          child: const Text('Re-order'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
-        ),
-      ],
+        );
+      },
     );
   }
-}
 
-/* ======================= BottomSheet Review ======================= */
-class _ReviewSheet extends StatefulWidget {
-  final Review? initial;
-  const _ReviewSheet({this.initial});
-
-  @override
-  State<_ReviewSheet> createState() => _ReviewSheetState();
-}
-
-class _ReviewSheetState extends State<_ReviewSheet> {
-  late double _rating; // 1..5 (0.5 step)
-  late TextEditingController _ctrl;
-
-  @override
-  void initState() {
-    super.initState();
-    _rating = widget.initial?.rating ?? 5.0;
-    _ctrl = TextEditingController(text: widget.initial?.comment ?? '');
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+  Widget _buildProductItem(OrderItemModel item) {
     return Padding(
-      padding: EdgeInsets.only(bottom: bottomInset),
-      child: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 44,
-                  height: 4,
-                  decoration: BoxDecoration(
-                      color: Colors.grey.shade400,
-                      borderRadius: BorderRadius.circular(2)),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  const Expanded(
-                    child: Text('Leave a Review',
-                        style: TextStyle(
-                            fontWeight: FontWeight.w700, fontSize: 16)),
-                  ),
-                  IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.close)),
-                ],
-              ),
-              const SizedBox(height: 8),
-              const Text('How was your order?',
-                  style: TextStyle(fontWeight: FontWeight.w600)),
-              const SizedBox(height: 4),
-              const Text('Please give your rating and also your review.',
-                  style: TextStyle(color: AppTheme.lightText)),
-              const SizedBox(height: 12),
-
-              Center(child: _Stars(rating: _rating, onRate: (v) => setState(() => _rating = v))),
-              const SizedBox(height: 8),
-              Slider(
-                min: 1,
-                max: 5,
-                divisions: 8,
-                value: _rating,
-                label: _rating.toStringAsFixed(1),
-                onChanged: (v) => setState(() => _rating = v),
-              ),
-              const SizedBox(height: 8),
-
-              Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade300),
-                ),
-                padding: const EdgeInsets.all(12),
-                child: TextField(
-                  controller: _ctrl,
-                  maxLines: 5,
-                  decoration: const InputDecoration.collapsed(
-                      hintText: 'Write your review...'),
-                ),
-              ),
-              const SizedBox(height: 14),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black,
-                    foregroundColor: Colors.white,
-                    minimumSize: const Size.fromHeight(48),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                  ),
-                  onPressed: () {
-                    Navigator.pop(
-                      context,
-                      Review(rating: _rating, comment: _ctrl.text.trim()),
-                    );
-                  },
-                  child: const Text('Submit'),
-                ),
-              ),
-            ],
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.network(item.imageUrl, width: 60, height: 60, fit: BoxFit.cover,
+                errorBuilder: (_,__,___) => Container(width: 60, height: 60, color: Colors.grey[100])),
           ),
-        ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(item.name, style: const TextStyle(fontWeight: FontWeight.w600), maxLines: 1, overflow: TextOverflow.ellipsis),
+                Text('Size ${item.size} | Qty: ${item.quantity}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
-class _Stars extends StatelessWidget {
-  final double rating; // 1..5
-  final ValueChanged<double> onRate;
-  const _Stars({required this.rating, required this.onRate});
+class _StatusPill extends StatelessWidget {
+  final OrderStatus status;
+  const _StatusPill({required this.status});
 
   @override
   Widget build(BuildContext context) {
-    final widgets = <Widget>[];
-    for (int i = 1; i <= 5; i++) {
-      final full = rating >= i;
-      final half = !full && rating >= (i - 0.5);
-      widgets.add(
-        InkWell(
-          onTap: () => onRate(i.toDouble()),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Icon(
-              full ? Icons.star : (half ? Icons.star_half : Icons.star_border),
-              size: 32,
-              color: Colors.amber,
-            ),
-          ),
-        ),
-      );
+    // Mapping màu sắc và tên hiển thị
+    Color color = Colors.orange;
+    String label = "Processing";
+
+    switch (status) {
+      case OrderStatus.created:
+        color = Colors.blue;
+        label = "Created";
+        break;
+      case OrderStatus.delivered:
+        color = Colors.green;
+        label = "Delivered";
+        break;
+      case OrderStatus.inTransit:
+        color = Colors.purple;
+        label = "Shipping";
+        break;
+      default:
+        color = Colors.black;
+        label = status.name.toUpperCase();
     }
-    return Row(mainAxisAlignment: MainAxisAlignment.center, children: widgets);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(8)
+      ),
+      child: Text(
+          label,
+          style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)
+      ),
+    );
+  }
+}
+
+class _EmptyOrders extends StatelessWidget {
+  final String text;
+  const _EmptyOrders({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.inventory_2_outlined, size: 48, color: Colors.grey),
+          const SizedBox(height: 10),
+          Text(text, style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+        ],
+      ),
+    );
   }
 }

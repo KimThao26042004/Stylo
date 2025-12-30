@@ -33,8 +33,8 @@ class _AddressScreenState extends State<AddressScreen> {
       orElse: () => account.addresses.first,
     );
 
-    _initialDefaultId = defaultAddr.diaChiID;
-    _selectedId = defaultAddr.diaChiID;
+    _initialDefaultId = defaultAddr.diaChiId;
+    _selectedId = defaultAddr.diaChiId;
     _initialized = true;
   }
 
@@ -56,13 +56,13 @@ class _AddressScreenState extends State<AddressScreen> {
         padding: const EdgeInsets.all(16),
         children: [
           ...account.addresses.map((addr) {
-            final isSelected = _selectedId == addr.diaChiID;
-            final isDefault = _initialDefaultId == addr.diaChiID;
+            final isSelected = _selectedId == addr.diaChiId;
+            final isDefault = _initialDefaultId == addr.diaChiId;
 
             return InkWell(
               borderRadius: BorderRadius.circular(14),
               onTap: () {
-                setState(() => _selectedId = addr.diaChiID);
+                setState(() => _selectedId = addr.diaChiId);
               },
               child: Container(
                 margin: const EdgeInsets.only(bottom: 12),
@@ -169,7 +169,7 @@ class _AddressScreenState extends State<AddressScreen> {
                         if (confirm == true && mounted) {
                           await context
                               .read<AccountProvider>()
-                              .deleteAddress(addr.diaChiID);
+                              .deleteAddress(addr.diaChiId);
 
                           _initialized = false;
                           context

@@ -42,18 +42,37 @@ class AppTheme {
 // ------- Validators -------
 String? emailValidator(String? v) {
   final s = v?.trim() ?? '';
-  if (s.isEmpty) return 'Email is required';
+  if (s.isEmpty) return 'Vui lòng nhập Email';
   final ok = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(s);
-  if (!ok) return 'Invalid email';
+  if (!ok) return 'Email không hợp lệ';
   return null;
 }
 
 String? passwordValidator(String? v) {
   final s = v ?? '';
-  if (s.isEmpty) return 'Password is required';
-  if (s.length < 6) return 'At least 6 characters';
+  if (s.isEmpty) return 'Vui lòng nhập mật khẩu';
+  if (s.length < 6) return 'Mật khẩu phải có ít nhất 6 ký tự';
+  // Kiểm tra chữ cái và chữ số
+  // if (!RegExp(r'^(?=.*[A-Za-z])(?=.*\d)').hasMatch(s)) {
+  //   return 'Mật khẩu phải bao gồm cả chữ và số';
+  // }
   return null;
 }
+
+// Hàm kiểm tra nhập lại mật khẩu
+String? confirmPasswordValidator(String? v, String originalPassword) {
+  final s = v ?? '';
+  if (s.isEmpty) return 'Vui lòng xác nhận mật khẩu';
+  // Gọi lại hàm kiểm tra độ dài cơ bản nếu cần
+  final baseError = passwordValidator(s);
+  if (baseError != null) return baseError;
+
+  if (s != originalPassword) {
+    return 'Mật khẩu xác nhận không khớp';
+  }
+  return null;
+}
+
 
 // ------- Small widgets -------
 class OrDivider extends StatelessWidget {
@@ -63,7 +82,7 @@ class OrDivider extends StatelessWidget {
     return Row(children: const [
       Expanded(child: Divider(color: AppTheme.divider)),
       SizedBox(width: 12),
-      Text('Or'),
+      Text('Hoặc'),
       SizedBox(width: 12),
       Expanded(child: Divider(color: AppTheme.divider)),
     ]);
@@ -76,12 +95,13 @@ class TermsLine extends StatelessWidget {
   Widget build(BuildContext context) {
     final style =
     Theme.of(context).textTheme.bodySmall?.copyWith(color: AppTheme.lightText, height: 1.4);
-    return Text.rich(TextSpan(text: 'By signing up you agree to our ', style: style, children: const [
-      TextSpan(text: 'Terms', style: TextStyle(decoration: TextDecoration.underline, color: Colors.black)),
+    return Text.rich(TextSpan(text: 'Bằng việc đăng ký, bạn đồng ý với ', style: style, children: const [
+      TextSpan(text: 'Điều khoản', style: TextStyle(decoration: TextDecoration.underline, color: Colors.black)),
       TextSpan(text: ', '),
-      TextSpan(text: 'Privacy Policy', style: TextStyle(decoration: TextDecoration.underline, color: Colors.black)),
-      TextSpan(text: ', and '),
-      TextSpan(text: 'Cookie Use', style: TextStyle(decoration: TextDecoration.underline, color: Colors.black)),
+      TextSpan(text: 'Chính sách bảo mật', style: TextStyle(decoration: TextDecoration.underline, color: Colors.black)),
+      TextSpan(text: ', và '),
+      TextSpan(text: 'Sử dụng Cookie', style: TextStyle(decoration: TextDecoration.underline, color: Colors.black)),
+      TextSpan(text: ' của chúng tôi.'),
     ]));
   }
 }

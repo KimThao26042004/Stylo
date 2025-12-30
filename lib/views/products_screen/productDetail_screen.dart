@@ -24,6 +24,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   int? _selectedMauId;
   int? _selectedSizeId;
   int? _price;
+  int? _currentVariantId;
 
   // ===== RECOMMEND =====
   List<ProductRecommend> _recommends = [];
@@ -70,23 +71,33 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   /// CHỈ GỌI KHI ĐÃ CHỌN ĐỦ MÀU + SIZE
   Future<void> _updatePriceIfReady() async {
+    // Kiểm tra an toàn: Nếu product chưa load thì không làm gì cả
+    if (_product == null) return;
+
     if (_selectedMauId == null || _selectedSizeId == null) {
-      setState(() => _price = _product!.basePrice);
+      setState(() => _price = _product?.basePrice ?? 0);
       return;
     }
 
     try {
-      final price = await ProductService.getPrice(
+      // Sử dụng hàm mới chúng ta vừa thống nhất ở Service
+      final result = await ProductService.getVariantDetails(
         sanPhamId: widget.productId,
         mauId: _selectedMauId!,
         sizeId: _selectedSizeId!,
       );
 
       if (!mounted) return;
-      setState(() => _price = price);
-    } catch (_) {
+
+      setState(() {
+        _price = result['price'];
+        _currentVariantId = result['bienTheId'];
+      });
+    } catch (e) {
+      print("Lỗi lấy giá/biến thể: $e");
       if (!mounted) return;
-      setState(() => _price = _product!.basePrice);
+      // Trả về giá mặc định nếu lỗi API
+      setState(() => _price = _product?.basePrice ?? 0);
     }
   }
 
@@ -347,6 +358,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     .firstWhere((e) => e.id == _selectedMauId);
                 context.read<CartProvider>().add(
                   product: p,
+                  bienTheId: _currentVariantId!,
                   sizeId: selectedSize.id,
                   colorId: selectedColor.id,
                   sizeName: selectedSize.kyHieu,

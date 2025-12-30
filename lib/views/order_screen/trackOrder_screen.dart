@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import '../../models/order_history_model.dart';
 import '../auth_screen/auth_common.dart';
-import 'myOrders_screen.dart';
 
 class TrackOrderScreen extends StatelessWidget {
-  final OrderView order;
+  // Thay đổi: Nhận vào OrderHistoryModel thay vì MyOrdersScreen
+  final OrderHistoryModel order;
 
-  /// toạ độ demo – sau này bạn thay bằng dữ liệu thật từ backend
   final LatLng target = const LatLng(21.0285, 105.8399);
-
-  /// đường đi demo – thay bằng route thật từ API .NET (nếu có)
   final List<LatLng> route = const [
     LatLng(21.0285, 105.8399),
     LatLng(21.0300, 105.8420),
@@ -22,15 +20,17 @@ class TrackOrderScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const AppBackBar(title: 'Track Order'),
+      appBar: AppBackBar(title: 'Track Order #${order.id}'),
       body: Stack(
         children: [
           _OrderMap(center: target, route: route),
           Align(
             alignment: Alignment.bottomCenter,
             child: _OrderStatusSheet(
-              status: order.status,
+              // Truyền status thực tế từ model
+              status: order.statusEnum,
               courier: 'Jacob Jones',
+              maVanDon: order.maVanDon ?? "Chưa có mã",
             ),
           ),
         ],
@@ -79,93 +79,139 @@ class _OrderMap extends StatelessWidget {
   }
 }
 
-/// Bottom sheet hiển thị trạng thái đơn hàng
 class _OrderStatusSheet extends StatelessWidget {
   final OrderStatus status;
   final String courier;
-  const _OrderStatusSheet({required this.status, required this.courier});
+  final String maVanDon;
+
+  const _OrderStatusSheet({
+    required this.status,
+    required this.courier,
+    required this.maVanDon
+  });
 
   @override
   Widget build(BuildContext context) {
-    final steps = ['Packing', 'Picked', 'In Transit', 'Delivered'];
-    final current = switch (status) {
-      OrderStatus.packing => 0,
-      OrderStatus.picked => 1,
-      OrderStatus.inTransit => 2,
-      OrderStatus.delivered => 3,
-    };
+    // Định nghĩa các bước hiển thị trên giao diện
+    final steps = ['Created', 'Picked', 'Shipping', 'Delivered'];
+
+    // Ánh xạ trạng thái thực tế sang vị trí index (0 -> 3)
+    int currentStep = 0;
+    switch (status) {
+      case OrderStatus.created: currentStep = 0; break;
+      case OrderStatus.picked: currentStep = 1; break;
+      case OrderStatus.inTransit: currentStep = 2; break;
+      case OrderStatus.delivered: currentStep = 3; break;
+      case OrderStatus.failed: currentStep = -1; break; // Xử lý lỗi nếu cần
+      case OrderStatus.returned: currentStep = -1; break;
+    }
 
     return Container(
       margin: const EdgeInsets.all(12),
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: const [BoxShadow(color: Color(0x22000000), blurRadius: 10)],
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 15)],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Center(
-            child: Container(
-              width: 36,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade400,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
+            child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2))),
           ),
-          const SizedBox(height: 10),
-          const Text('Order Status', style: TextStyle(fontWeight: FontWeight.w700)),
-          const SizedBox(height: 8),
+          const SizedBox(height: 15),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Order Status', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              Text('Waybill: $maVanDon', style: const TextStyle(color: Colors.blue, fontSize: 12, fontWeight: FontWeight.w600)),
+            ],
+          ),
+          const SizedBox(height: 20),
+
+          // Danh sách các bước trạng thái
           ...List.generate(steps.length, (i) {
-            final active = i <= current;
-            return Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(
-                  active ? Icons.radio_button_checked : Icons.radio_button_unchecked,
-                  size: 20,
-                  color: active ? Colors.black : Colors.grey,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+            final isCompleted = i < currentStep;
+            final isCurrent = i == currentStep;
+            final active = isCompleted || isCurrent;
+
+            return IntrinsicHeight(
+              child: Row(
+                children: [
+                  Column(
                     children: [
-                      Text(
-                        steps[i],
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          color: active ? Colors.black : Colors.grey,
-                        ),
+                      Icon(
+                        isCompleted ? Icons.check_circle : (isCurrent ? Icons.radio_button_checked : Icons.radio_button_unchecked),
+                        size: 22,
+                        color: active ? Colors.black : Colors.grey[300],
                       ),
                       if (i < steps.length - 1)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 6),
-                          child: Container(height: 12, width: 2, color: Colors.grey.shade300),
+                        Expanded(
+                          child: VerticalDivider(
+                            color: i < currentStep ? Colors.black : Colors.grey[300],
+                            thickness: 2,
+                          ),
                         ),
                     ],
                   ),
-                ),
-              ],
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          steps[i],
+                          style: TextStyle(
+                            fontWeight: active ? FontWeight.bold : FontWeight.normal,
+                            color: active ? Colors.black : Colors.grey,
+                          ),
+                        ),
+                        const SizedBox(height: 20), // Tạo khoảng cách giữa các dòng
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             );
           }),
-          const SizedBox(height: 12),
+
+          const Divider(),
+          const SizedBox(height: 10),
           Row(
             children: [
-              const CircleAvatar(child: Icon(Icons.person_outline)),
-              const SizedBox(width: 8),
-              Text(courier, style: const TextStyle(fontWeight: FontWeight.w600)),
+              const CircleAvatar(backgroundColor: Colors.black, child: Icon(Icons.delivery_dining, color: Colors.white)),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(courier, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  const Text('Shipper', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                ],
+              ),
               const Spacer(),
-              IconButton(onPressed: () {}, icon: const Icon(Icons.call)),
-              IconButton(onPressed: () {}, icon: const Icon(Icons.message_outlined)),
+              _ActionIcon(icon: Icons.call),
+              const SizedBox(width: 8),
+              _ActionIcon(icon: Icons.chat_bubble_outline),
             ],
           ),
         ],
       ),
+    );
+  }
+}
+
+class _ActionIcon extends StatelessWidget {
+  final IconData icon;
+  const _ActionIcon({required this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: Colors.grey.shade200)),
+      child: Icon(icon, size: 20),
     );
   }
 }

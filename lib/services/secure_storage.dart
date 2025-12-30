@@ -19,4 +19,12 @@ class SecureStorage {
   static Future<void> clearToken() async {
     await _storage.delete(key: _keyToken);
   }
+
+  static Future<void> saveKhachHangId(String id) async {
+    await _storage.write(key: 'khachHangId', value: id);
+  }
+
+  static Future<String?> getKhachHangId() async {
+    return await _storage.read(key: 'khachHangId');
+  }
 }
