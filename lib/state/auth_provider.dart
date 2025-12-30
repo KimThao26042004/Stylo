@@ -55,8 +55,6 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // --- CÁC HÀM SỬ DỤNG _RUN (TỰ ĐỘNG CÓ DIO EXCEPTION) ---
-
   Future<void> register(String fullName, String email, String password) =>
       _run(() async {
         await _auth.register(fullName: fullName, email: email, password: password);

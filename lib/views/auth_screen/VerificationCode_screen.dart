@@ -8,7 +8,7 @@ import 'login_screen.dart';
 class VerificationCodeScreen extends StatefulWidget {
   static const String routeName = '/verify';
   final String email;
-  final String flow; // signup | forgot
+  final String flow;
 
   const VerificationCodeScreen({
     super.key,
@@ -21,10 +21,10 @@ class VerificationCodeScreen extends StatefulWidget {
 }
 
 class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
-  final _cells = List.generate(4, (_) => TextEditingController());
-  // String get _code => _cells.map((c) => c.text).join();
-  String _code = '';
-  bool _submitting = false;
+  // Tạo 4 controller cho 4 ô nhập OTP
+  final List<TextEditingController> _cells = List.generate(4, (_) => TextEditingController());
+
+  // Lấy giá trị OTP từ các ô nhập
   String get _otp => _cells.map((c) => c.text).join();
 
   @override
@@ -35,101 +35,82 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
     super.dispose();
   }
 
-  Future<void> _continue() async {
+  // Hàm xử lý xác thực
+  Future<void> _onVerify() async {
     final otp = _otp;
 
     if (otp.length != 4) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Mã OTP không hợp lệ')),
-      );
+      _showError('Vui lòng nhập đầy đủ mã xác thực');
       return;
     }
 
-    setState(() => _submitting = true);
+    final auth = context.read<AuthProvider>();
 
-    try {
-      final auth = context.read<AuthProvider>();
-
-      if (widget.flow == 'forgot') {
-        await auth.verifyResetOtp(
-          email: widget.email,
-          code: otp,
-        );
-
-        if (!mounted) return;
-
-        Navigator.pushReplacementNamed(
-          context,
-          ResetPassScreen.routeName,
-          arguments: widget.email,
-        );
-      } else {
-        await auth.verifyOtp(
-          email: widget.email,
-          code: otp,
-        );
-
-        if (!mounted) return;
-
-        Navigator.pushNamedAndRemoveUntil(
-          context,
-          LoginScreen.routeName,
-              (_) => false,
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Xác thực thất bại')),
-      );
+    // Thực hiện gọi API qua Provider
+    if (widget.flow == 'forgot') {
+      await auth.verifyResetOtp(email: widget.email, code: otp);
+    } else {
+      await auth.verifyOtp(email: widget.email, code: otp);
     }
 
-    setState(() => _submitting = false);
-  }
+    if (!mounted) return;
 
-  Future<void> _resend() async {
-    final auth = context.read<AuthProvider>();
-    final email = widget.email;
-    final otp = _otp;
+    // KIỂM TRA LỖI SAU KHI GỌI API
+    if (auth.error != null) {
+      _showError(auth.error!);
+      return; // Dừng lại tại đây nếu có lỗi, không chuyển trang
+    }
 
-    if (widget.flow == "signup") {
-      // Signup: xác thực OTP
-      if (otp.length != 4) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Mã OTP không hợp lệ')),
-        );
-        return;
-      }
-
-      await auth.verifyOtp(
-        email: email,
-        code: otp,
+    // NẾU KHÔNG CÓ LỖI -> CHUYỂN TRANG
+    if (widget.flow == 'forgot') {
+      Navigator.pushReplacementNamed(
+        context,
+        ResetPassScreen.routeName,
+        arguments: widget.email,
       );
     } else {
-      // Forgot password: gửi lại OTP
-      await auth.forgotPassword(email);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Xác thực tài khoản thành công!'), backgroundColor: Colors.green),
+      );
+      Navigator.pushNamedAndRemoveUntil(context, LoginScreen.routeName, (_) => false);
+    }
+  }
+
+  // Hàm gửi lại mã
+  Future<void> _onResend() async {
+    final auth = context.read<AuthProvider>();
+
+    if (widget.flow == "signup") {
+      await auth.resendOtp(widget.email);
+    } else {
+      await auth.forgotPassword(widget.email);
     }
 
     if (!mounted) return;
 
     if (auth.error != null) {
+      _showError(auth.error!);
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(auth.error!)),
+        const SnackBar(content: Text('Mã mới đã được gửi vào Email'), backgroundColor: Colors.blue),
       );
-      return;
     }
+  }
 
+  void _showError(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Thao tác thành công')),
+      SnackBar(content: Text(msg), backgroundColor: Colors.red),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
+    final isLoading = auth.isLoading;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7F7F7),
-      appBar: const AppBackBar(title: 'Verification Code'),
+      appBar: const AppBackBar(title: 'Xác thực mã'),
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
@@ -139,91 +120,56 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Enter 4 Digit Code',
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleLarge
-                        ?.copyWith(fontWeight: FontWeight.w700),
+                  const Text(
+                    'Nhập mã xác nhận',
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
                   ),
                   const SizedBox(height: 8),
-
-                  RichText(
-                    text: TextSpan(
+                  Text.rich(
+                    TextSpan(
+                      text: 'Mã OTP đã được gửi đến ',
                       style: const TextStyle(color: AppTheme.lightText),
                       children: [
-                        const TextSpan(
-                          text:
-                          'Enter 4 digit code that you receive on your email ',
-                        ),
                         TextSpan(
-                          text: widget.email.isEmpty
-                              ? 'your@email.com'
-                              : widget.email,
-                          style: const TextStyle(
-                            color: Colors.black,
-                            fontWeight: FontWeight.w600,
-                          ),
+                          text: widget.email,
+                          style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w600),
                         ),
-                        const TextSpan(text: '.'),
                       ],
                     ),
                   ),
-
-                  const SizedBox(height: 28),
-
+                  const SizedBox(height: 32),
                   Card(
-                    elevation: 3,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                     child: Padding(
-                      padding: const EdgeInsets.all(20),
+                      padding: const EdgeInsets.all(24),
                       child: Column(
                         children: [
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: List.generate(
-                              4,
-                                  (i) => OtpBox(controller: _cells[i]),
-                            ),
+                            children: List.generate(4, (i) => OtpBox(controller: _cells[i])),
                           ),
-
-                          const SizedBox(height: 16),
-
-                          Row(
-                            children: [
-                              const Text(
-                                "Email not received?",
-                                style:
-                                TextStyle(color: AppTheme.lightText),
-                              ),
-                              TextButton(
-                                onPressed:
-                                auth.isLoading ? null : _resend,
-                                child: const Text('Resend code'),
-                              ),
-                            ],
-                          ),
-
-                          const SizedBox(height: 12),
-
+                          const SizedBox(height: 24),
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton(
-                              onPressed:
-                              auth.isLoading ? null : _continue,
+                              onPressed: isLoading ? null : _onVerify,
                               style: AppTheme.primaryButton(context),
-                              child: auth.isLoading
-                                  ? const SizedBox(
-                                width: 22,
-                                height: 22,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                                  : const Text('Continue'),
+                              child: isLoading
+                                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                                  : const Text('Xác nhận'),
                             ),
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text("Bạn chưa nhận được mã?"),
+                              TextButton(
+                                onPressed: isLoading ? null : _onResend,
+                                child: const Text('Gửi lại', style: TextStyle(fontWeight: FontWeight.bold)),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -237,5 +183,4 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
       ),
     );
   }
-
 }
