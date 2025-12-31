@@ -68,9 +68,6 @@ class AccountService {
   }
 
   /// DELETE /api/Account/addresses/{id}
-  // Future<void> deleteAddress(int id) async {
-  //   await _api.dio.delete("/api/Account/addresses/$id");
-  // }
   Future<bool> deleteAddress(int id) async {
     try {
       print("Đang gọi API xóa ID: $id"); // Debug xem id có phải là 0 không

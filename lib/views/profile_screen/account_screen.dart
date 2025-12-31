@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../auth_screen/auth_common.dart';
 import '../order_screen/myOrders_screen.dart';
 import 'ChangePasswordScreen.dart';
 import 'myDetail_screen.dart';

@@ -31,10 +31,11 @@ class AccountProvider extends ChangeNotifier {
     } on DioException catch (e) {
       if (e.response != null) {
         final data = e.response?.data;
+        // Trong AccountProvider -> hàm _run
         if (data is Map) {
-          // Bắt đúng key 'message' từ ExceptionMiddleware của bạn
-          error = data['message'] ?? data['Message'] ?? "Yêu cầu thất bại";
-        } else {
+          // Ưu tiên lấy 'error' chi tiết từ backend nếu có, nếu không thì lấy 'message'
+          error = data['error'] ?? data['message'] ?? data['Message'] ?? "Yêu cầu thất bại";
+        }else {
           error = "Lỗi hệ thống: ${e.response?.statusCode}";
         }
       } else if (e.type == DioExceptionType.connectionTimeout) {
