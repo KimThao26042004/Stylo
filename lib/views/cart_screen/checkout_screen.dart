@@ -3,9 +3,11 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 
 import '../../state/account_provider.dart';
+import '../../state/auth_provider.dart';
 import '../../state/cart_provider.dart';
 import '../auth_screen/auth_common.dart';
 import '../cart_screen/address_screen.dart';
+import '../home_screen/home_screen.dart';
 import '../order_screen/myOrders_screen.dart';
 
 enum PaymentMethod { card, cash, applePay }
@@ -22,10 +24,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   static const double _vat = 0;
 
   PaymentMethod _payment = PaymentMethod.cash;
+  late DateTime _currentDate; // Ngày khách mở màn hình thanh toán
+  late DateTime _estimatedDate; // Ngày dự kiến giao hàng
 
   @override
   void initState() {
     super.initState();
+    // Khởi tạo ngay khi vào màn hình
+    _currentDate = DateTime.now();
+    _estimatedDate = _currentDate.add(const Duration(days: 3));
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<AccountProvider>().loadAddresses();
@@ -101,9 +108,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             children: [
               const Icon(Icons.local_shipping_outlined),
               const SizedBox(width: 8),
-              Text(
-                DateFormat('dd/MM/yyyy').format(_deliveryDate),
-                style: const TextStyle(fontWeight: FontWeight.w600),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Order Date: ${DateFormat('dd/MM/yyyy').format(_currentDate)}",
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                  Text(
+                    "Estimated: ${DateFormat('dd/MM/yyyy').format(_estimatedDate)}",
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ],
               ),
             ],
           ),
@@ -131,26 +147,77 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           /* ================= PLACE ORDER ================= */
           ElevatedButton(
             style: AppTheme.primaryButton(context),
-            onPressed: defaultAddress.isEmpty || cart.items.isEmpty
+            onPressed: defaultAddress.isEmpty || cart.items.isEmpty || cart.isProcessing
                 ? null
-                : () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Đặt hàng thành công'),
-                ),
-              );
+                : () async {
+              try {
+                final auth = context.read<AuthProvider>();
 
-              cart.clear();
+                // Đảm bảo lấy ID từ đúng nguồn đã đăng nhập
+                // Nếu auth.khachHangId chưa được set, thử parse từ userId (nếu userId là số)
+                int khId = auth.khachHangId ?? int.tryParse(auth.userId ?? '0') ?? 0;
 
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const MyOrdersScreen(),
-                ),
-                    (_) => false,
-              );
+                if (khId <= 0) {
+                  throw Exception("Vui lòng đăng nhập lại để xác thực thông tin khách hàng.");
+                }
+
+                // Thực hiện gọi hàm đặt hàng
+                final orderId = await context.read<CartProvider>().processOrder(
+                  khachHangId: khId,
+                  shippingFee: _shippingFee,
+                );
+
+                if (!context.mounted) return;
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Đặt hàng thành công! Mã đơn: #$orderId'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+
+                // Xóa lịch sử và về trang đơn hàng
+                // Xóa mọi thứ và về HomeScreen trước, sau đó mới đẩy MyOrdersScreen lên
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (_) => const HomeScreen()), // Về trang chủ
+                      (route) => false,
+                );
+
+                // Sau khi về Home, đẩy trang MyOrders lên để người dùng xem,
+                // khi bấm back sẽ về lại Home/Account
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const MyOrdersScreen()),
+                );
+              } catch (e) {
+                if (!context.mounted) return;
+
+                showDialog(
+                  context: context,
+                  barrierDismissible: false, // Ngăn người dùng tắt dialog bằng cách chạm ra ngoài
+                  builder: (_) => AlertDialog(
+                    title: const Text('Thông báo'),
+                    content: Text(e.toString().replaceAll("Exception: ", "")),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context); // Đóng Dialog
+                          Navigator.pop(context); // Quay lại trang CartScreen để khách sửa số lượng
+                        },
+                        child: const Text('Quay lại giỏ hàng'),
+                      ),
+                    ],
+                  ),
+                );
+              }
             },
-            child: const Text('Place Order'),
+            child: cart.isProcessing
+                ? const SizedBox(
+              height: 20, width: 20,
+              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+            )
+                : const Text('Place Order'),
           ),
         ],
       ),

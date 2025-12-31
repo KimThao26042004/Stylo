@@ -46,29 +46,44 @@ class ProductService {
         .toList();
   }
 
-
-  // ================= CHI TIẾT SẢN PHẨM =================
-  // static Future<ProductDetail> getProductDetail(int sanPhamId) async {
-  //   final data = await ApiClient.get('/api/Product/$sanPhamId');
-  //   return ProductDetail.fromJson(data);
-  // }
   static Future<ProductDetail> getProductDetail(int id) async {
     final res = await ApiClient.get('/api/Product/$id');
     return ProductDetail.fromJson(res);
   }
 
-  // ================= LẤY GIÁ THEO BIẾN THỂ =================
-  static Future<int> getPrice({
+  // ================= SỬA ĐỔI: LẤY THÔNG TIN BIẾN THỂ (GỒM GIÁ VÀ ID) =================
+  /// Thay thế hàm getPrice cũ bằng hàm này để lấy đầy đủ thông tin đặt hàng
+  static Future<Map<String, dynamic>> getVariantDetails({
     required int sanPhamId,
     required int mauId,
     required int sizeId,
   }) async {
+    // Gọi đến API bóc tách thông tin biến thể
+    // Lưu ý: Backend cần trả về JSON dạng: {"price": 200000, "bienTheId": 45150}
     final data = await ApiClient.get(
       '/api/Product/get-price'
           '?sanPhamId=$sanPhamId&mauId=$mauId&sizeId=$sizeId',
     );
-    return PriceResponse.fromJson(data).price;
+
+    // Trả về Map chứa cả giá và bienTheId
+    return {
+      'price': data['giaBan'] ?? 0,
+      'bienTheId': data['bienTheId'] ?? 0,
+    };
   }
+
+  // ================= LẤY GIÁ THEO BIẾN THỂ =================
+  // static Future<int> getPrice({
+  //   required int sanPhamId,
+  //   required int mauId,
+  //   required int sizeId,
+  // }) async {
+  //   final data = await ApiClient.get(
+  //     '/api/Product/get-price'
+  //         '?sanPhamId=$sanPhamId&mauId=$mauId&sizeId=$sizeId',
+  //   );
+  //   return PriceResponse.fromJson(data).price;
+  // }
 
 // ================= GỢI Ý SP TƯƠNG TỰ =================
   static Future<List<ProductRecommend>> getRecommendations(int productId) async {

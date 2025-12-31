@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart'; // For formatting price
 
 import '../../models/product_detail.dart';
 import '../../models/product_recommend.dart';
@@ -24,6 +25,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   int? _selectedMauId;
   int? _selectedSizeId;
   int? _price;
+  int? _currentVariantId;
+  int _quantity = 1;  // Default quantity is 1
 
   // ===== RECOMMEND =====
   List<ProductRecommend> _recommends = [];
@@ -56,8 +59,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   Future<void> _loadRecommend() async {
     try {
-      final data =
-      await ProductService.getRecommendations(widget.productId);
+      final data = await ProductService.getRecommendations(widget.productId);
       if (!mounted) return;
       setState(() => _recommends = data);
     } catch (_) {
@@ -68,25 +70,31 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     }
   }
 
-  /// CHỈ GỌI KHI ĐÃ CHỌN ĐỦ MÀU + SIZE
   Future<void> _updatePriceIfReady() async {
+    if (_product == null) return;
+
     if (_selectedMauId == null || _selectedSizeId == null) {
-      setState(() => _price = _product!.basePrice);
+      setState(() => _price = _product?.basePrice ?? 0);
       return;
     }
 
     try {
-      final price = await ProductService.getPrice(
+      final result = await ProductService.getVariantDetails(
         sanPhamId: widget.productId,
         mauId: _selectedMauId!,
         sizeId: _selectedSizeId!,
       );
 
       if (!mounted) return;
-      setState(() => _price = price);
-    } catch (_) {
+
+      setState(() {
+        _price = result['price'];
+        _currentVariantId = result['bienTheId'];
+      });
+    } catch (e) {
+      print("Lỗi lấy giá/biến thể: $e");
       if (!mounted) return;
-      setState(() => _price = _product!.basePrice);
+      setState(() => _price = _product?.basePrice ?? 0);
     }
   }
 
@@ -109,6 +117,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     final saved = context.watch<SavedProvider>();
     final isFavorite = saved.isSaved(p.sanPhamId);
 
+    final priceFormat = NumberFormat("#,##0", "vi_VN");  // Format price with thousands separator
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -120,10 +130,45 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         elevation: 0,
         leading: const BackButton(color: Colors.black),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_none, color: Colors.black),
-            onPressed: () {
-              Navigator.pushNamed(context, '/notifications');
+          Consumer<CartProvider>(
+            builder: (context, cart, _) {
+              final cartCount = cart.itemCount; // Get the total number of items in the cart
+              return IconButton(
+                icon: Stack(
+                  children: [
+                    const Icon(Icons.shopping_cart_outlined, color: Colors.black),
+                    if (cartCount > 0)
+                      Positioned(
+                        right: 0,
+                        top: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(2),
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                          constraints: const BoxConstraints(
+                            minWidth: 16,
+                            minHeight: 16,
+                          ),
+                          child: Text(
+                            '$cartCount',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                onPressed: () {
+                  // Navigate to the CartScreen when clicked
+                  Navigator.pushNamed(context, '/cart');
+                },
+              );
             },
           ),
         ],
@@ -202,12 +247,23 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
+                  const SizedBox(height: 8),
+
+                  // Moved price below the product name
+                  Text(
+                    '${priceFormat.format(_price ?? p.basePrice)} đ',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.red,
+                    ),
+                  ),
 
                   const SizedBox(height: 24),
 
                   /// COLORS
                   const Text(
-                    'Màu sắc',
+                    'Chọn màu sắc',
                     style: TextStyle(fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
@@ -247,7 +303,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
                   /// SIZES
                   const Text(
-                    'Choose size',
+                    'Chọn kích cỡ',
                     style: TextStyle(fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
@@ -279,7 +335,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   Text(
                     p.description.isNotEmpty
                         ? p.description
-                        : 'This casual T-shirt is designed for everyday comfort while maintaining a clean and modern style. Made from high-quality cotton fabric, it feels soft on the skin and allows good breathability, making it suitable for all-day wear. The regular fit provides a balanced silhouette that is neither too tight nor too loose, ensuring comfort during daily activities such as walking, studying, or meeting friends. Its short sleeves and classic round neckline create a timeless look that never goes out of fashion. The shirt is easy to mix and match with jeans, trousers, or shorts, making it a versatile piece in any wardrobe. With durable stitching and color retention after washing, this T-shirt is ideal for those who value both practicality and simple elegance in their clothing choices.',
+                        : 'This casual T-shirt is designed for everyday comfort...',
                     style: const TextStyle(
                       fontSize: 14,
                       color: Colors.grey,
@@ -312,15 +368,46 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         ),
         child: Row(
           children: [
-            Expanded(
-              child: Text(
-                '${_price ?? p.basePrice} đ',
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+            // Quantity selection
+            Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.remove),
+                  onPressed: () {
+                    if (_quantity > 1) {
+                      setState(() => _quantity--);
+                    }
+                  },
                 ),
+                Text(
+                  '$_quantity',
+                  style: const TextStyle(fontSize: 18),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.add),
+                  onPressed: () {
+                    if (_quantity < 5) {  // Limit quantity to 10
+                      setState(() => _quantity++);
+                    }
+                  },
+                ),
+              ],
+            ),
+
+            const SizedBox(width: 10),  // Spacing between quantity and total price
+
+            // Total price display (formatted)
+            Text(
+              'Tổng: ${NumberFormat('#,##0', 'vi_VN').format((_price ?? p.basePrice) * _quantity)} đ',
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
               ),
             ),
+
+            const SizedBox(width: 10),  // Spacing between total price and Add to Cart button
+
+            // Add to Cart button
             ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red,
@@ -347,6 +434,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     .firstWhere((e) => e.id == _selectedMauId);
                 context.read<CartProvider>().add(
                   product: p,
+                  bienTheId: _currentVariantId!,
                   sizeId: selectedSize.id,
                   colorId: selectedColor.id,
                   sizeName: selectedSize.kyHieu,
@@ -360,7 +448,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
               icon: const Icon(Icons.shopping_bag_outlined),
               label: const Text(
-                'Add to Cart',
+                'Thêm vào giỏ hàng',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,

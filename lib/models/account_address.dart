@@ -1,11 +1,11 @@
 class AccountAddress {
-  final int diaChiID;
+  final int diaChiId;
   final String diaChiChiTiet;
   final String loaiDiaChi;
   final bool isDefault;
 
   AccountAddress({
-    required this.diaChiID,
+    required this.diaChiId,
     required this.diaChiChiTiet,
     required this.loaiDiaChi,
     required this.isDefault,
@@ -13,7 +13,7 @@ class AccountAddress {
 
   factory AccountAddress.fromJson(Map<String, dynamic> json) {
     return AccountAddress(
-      diaChiID: json['diaChiID'] ?? 0,
+      diaChiId: json['diaChiId'] ?? 0,
       diaChiChiTiet: json['diaChiChiTiet'] ?? '',
       loaiDiaChi: json['loaiDiaChi'] ?? '',
       isDefault: json['isDefault'] ?? false,
@@ -21,7 +21,7 @@ class AccountAddress {
   }
 
   Map<String, dynamic> toJson() => {
-    "diaChiID": diaChiID,
+    "diaChiID": diaChiId,
     "diaChiChiTiet": diaChiChiTiet,
     "loaiDiaChi": loaiDiaChi,
     "isDefault": isDefault,

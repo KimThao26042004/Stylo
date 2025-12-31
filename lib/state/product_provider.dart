@@ -26,7 +26,7 @@ class ProductProvider extends ChangeNotifier {
     try {
       final res = await ProductService.getHome();
       phanLoai = res.phanLoaiList;
-      sanPham = res.products.take(10).toList(); //  10 SP HOME
+      sanPham = res.products.take(50).toList(); //  10 SP HOME
       selectedPhanLoaiId = null; // ALL
       _loadedHome = true;
     } catch (e) {

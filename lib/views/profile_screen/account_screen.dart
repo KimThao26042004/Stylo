@@ -9,6 +9,7 @@ import '../categories/categories_screen.dart';
 import '../savedItems_screen/saved_screen.dart';
 import '../cart_screen/cart_screen.dart';
 import '../auth_screen/login_screen.dart';
+import 'changePassword_screen.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -73,6 +74,13 @@ class _AccountScreenState extends State<AccountScreen> {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const MyDetailScreen()),
+            );
+          }),
+          // Change Password
+          _tile(context, Icons.lock_outline, 'Change Password', () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ChangePasswordScreen()),
             );
           }),
           _tile(context, Icons.home_outlined, 'Address Book', () {

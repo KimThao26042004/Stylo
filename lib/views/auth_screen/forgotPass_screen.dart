@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../../state/auth_provider.dart';
 import 'auth_common.dart';
 import 'VerificationCode_screen.dart';
@@ -25,6 +24,36 @@ class _ForgotPassScreenState extends State<ForgotPassScreen> {
     super.dispose();
   }
 
+  // Thông báo lỗi dạng Floating
+  void _showNotification(String message, {bool isError = true}) {
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(
+              isError ? Icons.error_outline : Icons.check_circle_outline,
+              color: Colors.white,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                message,
+                style: const TextStyle(color: Colors.white, fontSize: 14),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: isError ? Colors.redAccent : Colors.green.shade600,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(20),
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
   Future<void> _sendCode() async {
     if (!_valid) return;
 
@@ -36,21 +65,25 @@ class _ForgotPassScreenState extends State<ForgotPassScreen> {
     if (!mounted) return;
 
     if (auth.error != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(auth.error!)),
-      );
+      _showNotification(auth.error!, isError: true);
       return;
     }
 
-    //  qua OTP screen với flow = reset
-    Navigator.pushNamed(
-      context,
-      VerificationCodeScreen.routeName,
-      arguments: {
-        "email": email,
-        "flow": "forgot",
-      },
-    );
+    // Thông báo thành công
+    _showNotification('Mã xác thực đã được gửi đến email của bạn', isError: false);
+
+    // Chờ một chút để người dùng đọc thông báo trước khi chuyển trang
+    Future.delayed(const Duration(milliseconds: 1500), () {
+      if (!mounted) return;
+      Navigator.pushNamed(
+        context,
+        VerificationCodeScreen.routeName,
+        arguments: {
+          "email": email,
+          "flow": "forgot",
+        },
+      );
+    });
   }
 
   @override
@@ -59,7 +92,7 @@ class _ForgotPassScreenState extends State<ForgotPassScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7F7F7),
-      appBar: const AppBackBar(title: 'Forgot Password'),
+      appBar: const AppBackBar(title: 'Quên mật khẩu'),
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
@@ -70,7 +103,7 @@ class _ForgotPassScreenState extends State<ForgotPassScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Enter your email',
+                    'Nhập Email của bạn',
                     style: Theme.of(context)
                         .textTheme
                         .titleLarge
@@ -78,8 +111,8 @@ class _ForgotPassScreenState extends State<ForgotPassScreen> {
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    'Enter your email for the verification process. '
-                        'We will send 4 digits code to your email.',
+                    'Vui lòng nhập địa chỉ email đã đăng ký. '
+                        'Chúng tôi sẽ gửi mã xác thực gồm 4 chữ số để khôi phục mật khẩu.',
                     style: TextStyle(color: AppTheme.lightText),
                   ),
 
@@ -94,7 +127,11 @@ class _ForgotPassScreenState extends State<ForgotPassScreen> {
                       padding: const EdgeInsets.all(20),
                       child: Form(
                         key: _formKey,
-                        onChanged: () => setState(() {}),
+                        onChanged: () {
+                          // QUAN TRỌNG: Xóa lỗi hệ thống khi người dùng bắt đầu chỉnh sửa lại email
+                          if (auth.error != null) auth.clearError();
+                          setState(() {});
+                        },
                         child: Column(
                           children: [
                             TextFormField(
@@ -102,7 +139,7 @@ class _ForgotPassScreenState extends State<ForgotPassScreen> {
                               keyboardType: TextInputType.emailAddress,
                               decoration: AppTheme.input(
                                 'Email',
-                                hint: 'you@example.com',
+                                hint: 'a@example.com',
                               ),
                               validator: emailValidator,
                             ),
@@ -123,7 +160,7 @@ class _ForgotPassScreenState extends State<ForgotPassScreen> {
                                     strokeWidth: 2,
                                   ),
                                 )
-                                    : const Text('Send Code'),
+                                    : const Text('Gửi mã xác thực'),
                               ),
                             ),
                           ],

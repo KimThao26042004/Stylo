@@ -48,6 +48,10 @@ class AuthService {
     if (data['accessToken'] != null) {
       await SecureStorage.saveToken(data['accessToken']);
     }
+    if (data['khachHangId'] != null) {
+      // Bạn cần viết thêm hàm saveKhachHangId trong class SecureStorage của bạn
+      await SecureStorage.saveKhachHangId(data['khachHangId'].toString());
+    }
 
     return data;
   }
