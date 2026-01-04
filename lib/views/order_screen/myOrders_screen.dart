@@ -49,7 +49,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> with SingleTickerProvid
     final orderProvider = context.watch<OrderProvider>();
 
     return Scaffold(
-      appBar: const AppBackBar(title: 'My Orders'),
+      appBar: const AppBackBar(title: 'Đơn hàng'),
       body: Column(
         children: [
           const SizedBox(height: 8),
@@ -61,10 +61,10 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> with SingleTickerProvid
               controller: _tab,
               children: [
                 orderProvider.ongoingOrders.isEmpty
-                    ? const _EmptyOrders(text: 'No Ongoing Orders!')
+                    ? const _EmptyOrders(text: 'Không có đơn đặt hàng nào đang diễn ra!')
                     : _OngoingList(orders: orderProvider.ongoingOrders),
                 orderProvider.completedOrders.isEmpty
-                    ? const _EmptyOrders(text: 'No Completed Orders!')
+                    ? const _EmptyOrders(text: 'Chưa có đơn hàng nào hoàn tất!')
                     : _CompletedList(
                   orders: orderProvider.completedOrders,
                   reviews: const {},
@@ -94,7 +94,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> with SingleTickerProvid
         ),
         labelColor: Colors.black,
         unselectedLabelColor: Colors.black54,
-        tabs: const [Tab(text: 'Ongoing'), Tab(text: 'Completed')],
+        tabs: const [Tab(text: 'Đang giao'), Tab(text: 'Hoàn thành')],
       ),
     );
   }
@@ -140,7 +140,7 @@ class _OngoingList extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text("Order #${order.id}",
+                    Text("Đơn hàng #${order.id}",
                         style: const TextStyle(fontWeight: FontWeight.bold)),
                     _StatusPill(status: order.statusEnum),
                   ],
@@ -177,7 +177,7 @@ class _OngoingList extends StatelessWidget {
                             Text(item.name,
                                 style: const TextStyle(
                                     fontWeight: FontWeight.w600)),
-                            Text('Size ${item.size} | Qty: ${item.quantity}',
+                            Text('Kích cỡ ${item.size} | Số lượng: ${item.quantity}',
                                 style: const TextStyle(
                                     color: Colors.grey, fontSize: 13)),
                             const SizedBox(height: 4),
@@ -196,7 +196,7 @@ class _OngoingList extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text("Total: \$${order.tongThanhToan.toInt()}",
+                    Text("Tổng: \$${order.tongThanhToan.toInt()}",
                         style: const TextStyle(
                             fontWeight: FontWeight.bold, fontSize: 16)),
                     OutlinedButton(
@@ -212,7 +212,7 @@ class _OngoingList extends StatelessWidget {
                       },
                       style: OutlinedButton.styleFrom(
                           minimumSize: const Size(110, 38)),
-                      child: const Text('Track Order'),
+                      child: const Text('Theo dõi đơn hàng'),
                     ),
                   ],
                 ),
@@ -301,7 +301,7 @@ class _CompletedList extends StatelessWidget {
                     return ListTile(
                       leading: Image.network(item.imageUrl, width: 40, errorBuilder: (_,__,___)=> const Icon(Icons.image)),
                       title: Text(item.name, maxLines: 1, overflow: TextOverflow.ellipsis),
-                      subtitle: Text("Size: ${item.size} - \$${item.price.toInt()}"),
+                      subtitle: Text("Kích cỡ: ${item.size} - \$${item.price.toInt()}"),
                       onTap: () {
                         Navigator.pop(context);
                         _processReorderItem(context, item);
@@ -351,7 +351,7 @@ class _CompletedList extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text("Order #${order.id}", style: const TextStyle(fontWeight: FontWeight.bold)),
+                    Text("Đơn hàng #${order.id}", style: const TextStyle(fontWeight: FontWeight.bold)),
                     _StatusPill(status: order.statusEnum),
                   ],
                 ),
@@ -384,7 +384,7 @@ class _CompletedList extends StatelessWidget {
                                 style: const TextStyle(fontWeight: FontWeight.w600),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis),
-                            Text('Size ${item.size} | Qty: ${item.quantity}',
+                            Text('Kích cỡ ${item.size} | Số lượng: ${item.quantity}',
                                 style: const TextStyle(color: Colors.grey, fontSize: 13)),
                             const SizedBox(height: 4),
                             Text('\$ ${item.price.toInt()}',
@@ -403,7 +403,7 @@ class _CompletedList extends StatelessWidget {
                   children: [
                     // TỔNG TIỀN
                     Text(
-                      "Total: \$${order.tongThanhToan.toInt()}",
+                      "Tổng: \$${order.tongThanhToan.toInt()}",
                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                     ),
 
@@ -436,7 +436,7 @@ class _CompletedList extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(horizontal: 12),
                             elevation: 0, // Để phẳng nếu muốn giao diện tối giản
                           ),
-                          child: const Text('Re-order'),
+                          child: const Text('Đặt lại'),
                         ),
                       ],
                     ),
@@ -466,7 +466,7 @@ class _CompletedList extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(item.name, style: const TextStyle(fontWeight: FontWeight.w600), maxLines: 1, overflow: TextOverflow.ellipsis),
-                Text('Size ${item.size} | Qty: ${item.quantity}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                Text('Kích cỡ ${item.size} | Số lượng: ${item.quantity}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
               ],
             ),
           ),

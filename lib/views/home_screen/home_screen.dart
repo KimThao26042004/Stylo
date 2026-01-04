@@ -1,18 +1,16 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
 
 import 'notifications_screen.dart';
 import 'search_screen.dart';
 import 'search_by_image_screen.dart';
 import '../../state/product_provider.dart';
-import '../../models/product.dart';
 import '../savedItems_screen/saved_screen.dart';
 import '../cart_screen/cart_screen.dart';
 import '../profile_screen/account_screen.dart';
-import '../products_screen/productDetail_screen.dart';
 import '../categories/categories_screen.dart';
+import '../../widgets/product_card.dart';
 
 class HomeScreen extends StatefulWidget {
   static const String routeName = '/home';
@@ -138,7 +136,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: Colors.red,
       appBar: AppBar(
-        title: const Text('Stylo', style: TextStyle(fontWeight: FontWeight.w700)),
+        title: const Text('Stylo', style: TextStyle(fontWeight: FontWeight.w700, color: Colors.red,)),
         actions: [
           IconButton(
             onPressed: _openNotifications,
@@ -161,7 +159,7 @@ class _HomeScreenState extends State<HomeScreen> {
               decoration: InputDecoration(
                 filled: true,
                 fillColor: Colors.white,
-                hintText: 'Search for clothes...',
+                hintText: 'Tìm kiếm...',
                 hintStyle: const TextStyle(color: Colors.grey),
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: IconButton(
@@ -196,7 +194,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 itemBuilder: (context, index) {
                   if (index == 0) {
                     return ChoiceChip(
-                      label: const Text('All'),
+                      label: const Text('Tất cả'),
                       selected: provider.selectedPhanLoaiId == null,
                       onSelected: (_) {
                         provider.loadHome();
@@ -253,21 +251,21 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
 
+            const SizedBox(height: 14),
+
             // ===== GRID SẢN PHẨM (10 SP) =====
             GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: products.length,
-              gridDelegate:
-              const SliverGridDelegateWithFixedCrossAxisCount(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
-                mainAxisSpacing: 12,
-                crossAxisSpacing: 12,
-                childAspectRatio: .65,
+                mainAxisSpacing: 14,
+                crossAxisSpacing: 14,
+                childAspectRatio: 0.63,
               ),
-              itemBuilder: (_, i) => _ProductCard(p: products[i]),
+              itemBuilder: (_, i) => ProductCard(product: products[i]),
             ),
-
             const SizedBox(height: 16),
           ],
         ),
@@ -279,81 +277,16 @@ class _HomeScreenState extends State<HomeScreen> {
         type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(
-              icon: Icon(Icons.home_filled), label: 'Home'),
+              icon: Icon(Icons.home_filled), label: 'Trang chủ'),
           BottomNavigationBarItem(
-              icon: Icon(Icons.category), label: 'Categories'),
+              icon: Icon(Icons.category), label: 'Phân loại'),
           BottomNavigationBarItem(
-              icon: Icon(Icons.favorite_border), label: 'Saved'),
+              icon: Icon(Icons.favorite_border), label: 'Yêu thích'),
           BottomNavigationBarItem(
-              icon: Icon(Icons.shopping_cart_outlined), label: 'Cart'),
+              icon: Icon(Icons.shopping_cart_outlined), label: 'Giỏ hàng'),
           BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline), label: 'Account'),
+              icon: Icon(Icons.person_outline), label: 'Tài khoản'),
         ],
-      ),
-    );
-  }
-}
-
-class _ProductCard extends StatelessWidget {
-  final Product p;
-  const _ProductCard({required this.p});
-
-  @override
-  Widget build(BuildContext context) {
-    final priceFormat = NumberFormat("#,##0", "en_US");  // Định dạng giá
-
-    return InkWell(
-      borderRadius: BorderRadius.circular(14),
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => ProductDetailScreen(productId: p.sanPhamId),
-          ),
-        );
-      },
-      child: Card(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
-        ),
-        elevation: 4, // Add some shadow for better visibility
-        child: Stack(
-          children: [
-            // Image
-            ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
-              child: Image.network(
-                p.imageUrl,
-                fit: BoxFit.cover,  // Ensure image covers the space and maintains aspect ratio
-                width: double.infinity,  // Make sure image takes up the full width
-                height: 180,  // Set a fixed height for the image part
-                errorBuilder: (_, __, ___) => const Icon(Icons.broken_image),  // Fallback in case of error
-              ),
-            ),
-            Positioned(
-              bottom: 8,
-              left: 8,
-              right: 8,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Product name
-                  Text(
-                    p.tenSanPham,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                  // Price
-                  Text(
-                    '${priceFormat.format(p.giaBan)} đ',
-                    style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

@@ -43,7 +43,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       // Thông báo thành công và yêu cầu đăng nhập lại
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Password changed. Please login again.'),
+          content: Text('Mật khẩu đã được thay đổi. Vui lòng đăng nhập lại.'),
           backgroundColor: Colors.green,
         ),
       );
@@ -58,7 +58,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       // Hiển thị lỗi từ Backend (Ví dụ: "Mật khẩu cũ không chính xác")
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(provider.error ?? 'Update failed'),
+          content: Text(provider.error ?? 'Cập nhật thất bại'),
           backgroundColor: Colors.red,
         ),
       );
@@ -71,7 +71,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
     return Scaffold(
       // Sử dụng AppBackBar để đồng bộ nút quay lại và style tiêu đề
-      appBar: const AppBackBar(title: 'Change Password'),
+      appBar: const AppBackBar(title: 'Đổi mật khẩu'),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Form(
@@ -82,8 +82,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               TextFormField(
                 controller: _oldPassController,
                 obscureText: true,
-                decoration: AppTheme.input('Old Password'),
-                validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
+                decoration: AppTheme.input('Mật khẩu cũ'),
+                validator: (v) => (v == null || v.isEmpty) ? 'Bắt buộc' : null,
               ),
               const SizedBox(height: 12),
 
@@ -91,10 +91,10 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               TextFormField(
                 controller: _newPassController,
                 obscureText: true,
-                decoration: AppTheme.input('New Password'),
+                decoration: AppTheme.input('Mật khẩu mới'),
                 validator: (v) {
-                  if (v == null || v.isEmpty) return 'Required';
-                  if (v.length < 6) return 'Password must be at least 6 characters';
+                  if (v == null || v.isEmpty) return 'Bắt buộc';
+                  if (v.length < 6) return 'Mật khẩu phải có ít nhất 6 ký tự.';
                   return null;
                 },
               ),
@@ -104,9 +104,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               TextFormField(
                 controller: _confirmPassController,
                 obscureText: true,
-                decoration: AppTheme.input('Confirm New Password'),
+                decoration: AppTheme.input('Xác nhận mật khẩu mới'),
                 validator: (v) {
-                  if (v != _newPassController.text) return 'Passwords do not match';
+                  if (v != _newPassController.text) return 'Mật khẩu không khớp';
                   return null;
                 },
               ),
@@ -125,7 +125,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                     color: Colors.white,
                   ),
                 )
-                    : const Text('Update Password'),
+                    : const Text('Cập nhật mật khẩu'),
               ),
             ],
           ),

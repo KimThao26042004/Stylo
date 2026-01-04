@@ -14,7 +14,7 @@ class NewAddressScreen extends StatefulWidget {
 class _NewAddressScreenState extends State<NewAddressScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  String _type = 'Home';
+  String _type = 'Nhà ở';
   final _detail = TextEditingController();
   bool _isDefault = false;
 
@@ -46,7 +46,7 @@ class _NewAddressScreenState extends State<NewAddressScreen> {
 
     // Báo thành công
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Address added')),
+      const SnackBar(content: Text('Thêm địa chỉ')),
     );
 
     // QUAY VỀ + TRẢ KẾT QUẢ
@@ -58,7 +58,7 @@ class _NewAddressScreenState extends State<NewAddressScreen> {
     final account = context.watch<AccountProvider>();
 
     return Scaffold(
-      appBar: const AppBackBar(title: 'New Address'),
+      appBar: const AppBackBar(title: 'Địa chỉ mới'),
       body: Stack(
         children: [
           Container(color: Colors.grey.shade300), // giả lập map
@@ -78,21 +78,21 @@ class _NewAddressScreenState extends State<NewAddressScreen> {
                     DropdownButtonFormField<String>(
                       value: _type,
                       items: const [
-                        DropdownMenuItem(value: 'Home', child: Text('Home')),
-                        DropdownMenuItem(value: 'Office', child: Text('Office')),
+                        DropdownMenuItem(value: 'Nhà ở', child: Text('Nhà ở')),
+                        DropdownMenuItem(value: 'Văn phòng', child: Text('Văn phòng')),
                         DropdownMenuItem(
-                            value: 'Apartment', child: Text('Apartment')),
+                            value: 'Căn hộ', child: Text('Căn hộ')),
                       ],
-                      onChanged: (v) => setState(() => _type = v ?? 'Home'),
-                      decoration: AppTheme.input('Address Nickname'),
+                      onChanged: (v) => setState(() => _type = v ?? 'Nhà ở'),
+                      decoration: AppTheme.input('Loại địa chỉ'),
                     ),
                     const SizedBox(height: 10),
 
                     TextFormField(
                       controller: _detail,
-                      decoration: AppTheme.input('Full Address'),
+                      decoration: AppTheme.input('Địa chỉ đầy đủ'),
                       validator: (v) =>
-                      (v == null || v.isEmpty) ? 'Required' : null,
+                      (v == null || v.isEmpty) ? 'Bắt buộc' : null,
                     ),
 
                     Row(
@@ -102,7 +102,7 @@ class _NewAddressScreenState extends State<NewAddressScreen> {
                           onChanged: (v) =>
                               setState(() => _isDefault = v ?? false),
                         ),
-                        const Text('Make this as a default address'),
+                        const Text('Đặt làm địa chỉ mặc định'),
                       ],
                     ),
 
@@ -116,7 +116,7 @@ class _NewAddressScreenState extends State<NewAddressScreen> {
                         child:
                         CircularProgressIndicator(strokeWidth: 2),
                       )
-                          : const Text('Add'),
+                          : const Text('Thêm'),
                     ),
                   ],
                 ),

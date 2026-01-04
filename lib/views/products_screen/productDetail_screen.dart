@@ -122,7 +122,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Detail',
+          'Chi tiết sản phẩm',
           style: TextStyle(fontWeight: FontWeight.w700),
         ),
         centerTitle: true,

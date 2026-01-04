@@ -54,12 +54,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     account.addresses.where((a) => a.isDefault).toList();
 
     return Scaffold(
-      appBar: const AppBackBar(title: 'Checkout'),
+      appBar: const AppBackBar(title: 'Thanh toán'),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           /* ================= DELIVERY ADDRESS ================= */
-          _sectionTitle('Delivery Address'),
+          _sectionTitle('Địa chỉ giao hàng'),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -70,7 +70,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     if (account.isLoading)
-                      const Text('Loading address...')
+                      const Text('Đang tải địa chỉ...')
                     else if (defaultAddress.isEmpty)
                       const Text(
                         'Chưa có địa chỉ mặc định',
@@ -92,7 +92,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         if (!mounted) return;
                         context.read<AccountProvider>().loadAddresses();
                       },
-                      child: const Text('Change'),
+                      child: const Text('Thay đổi'),
                     ),
                   ],
                 ),
@@ -103,7 +103,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           const Divider(height: 32),
 
           /* ================= DELIVERY DATE ================= */
-          _sectionTitle('Estimated Delivery'),
+          _sectionTitle('Thời gian giao hàng dự kiến'),
           Row(
             children: [
               const Icon(Icons.local_shipping_outlined),
@@ -112,11 +112,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Order Date: ${DateFormat('dd/MM/yyyy').format(_currentDate)}",
+                    "Ngày đặt: ${DateFormat('dd/MM/yyyy').format(_currentDate)}",
                     style: const TextStyle(fontSize: 12, color: Colors.grey),
                   ),
                   Text(
-                    "Estimated: ${DateFormat('dd/MM/yyyy').format(_estimatedDate)}",
+                    "Dự kiến giao: ${DateFormat('dd/MM/yyyy').format(_estimatedDate)}",
                     style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
                 ],
@@ -127,20 +127,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           const Divider(height: 32),
 
           /* ================= PAYMENT METHOD ================= */
-          _sectionTitle('Payment Method'),
-          _paymentTile(PaymentMethod.card, Icons.credit_card, 'Card'),
-          _paymentTile(PaymentMethod.cash, Icons.payments_outlined, 'Cash on Delivery'),
+          _sectionTitle('Phương thức thanh toán'),
+          _paymentTile(PaymentMethod.card, Icons.credit_card, 'Thẻ'),
+          _paymentTile(PaymentMethod.cash, Icons.payments_outlined, 'Thanh toán khi nhận hàng'),
           _paymentTile(PaymentMethod.applePay, Icons.apple, 'Apple Pay'),
 
           const Divider(height: 32),
 
           /* ================= ORDER SUMMARY ================= */
-          _sectionTitle('Order Summary'),
-          _row('Sub-total', subTotal),
+          _sectionTitle('Tóm tắt đơn hàng'),
+          _row('Tổng phụ', subTotal),
           _row('VAT (%)', _vat),
-          _row('Shipping fee', _shippingFee),
+          _row('Phí vận chuyển', _shippingFee),
           const Divider(),
-          _row('Total', total, bold: true),
+          _row('Tổng', total, bold: true),
 
           const SizedBox(height: 20),
 
@@ -217,7 +217,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               height: 20, width: 20,
               child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
             )
-                : const Text('Place Order'),
+                : const Text('Đặt hàng'),
           ),
         ],
       ),

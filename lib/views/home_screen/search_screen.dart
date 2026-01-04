@@ -3,6 +3,9 @@ import '../auth_screen/auth_common.dart';
 import '../../models/product_recommend.dart';
 import '../../services/product_service.dart';
 import 'search_by_image_screen.dart';
+import '../../widgets/product_card.dart';
+import '../../models/product.dart';
+
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -18,7 +21,6 @@ class _SearchScreenState extends State<SearchScreen> {
   bool _loading = false;
   List<ProductRecommend> _results = [];
 
-  // demo recent (có thể thay bằng SharedPreferences)
   final List<String> _recent = [
     'Jeans',
     'Casual clothes',
@@ -45,7 +47,6 @@ class _SearchScreenState extends State<SearchScreen> {
     super.dispose();
   }
 
-  /// ================= SEARCH TEXT =================
   Future<void> _submitSearch(String text) async {
     final key = text.trim();
     if (key.isEmpty) return;
@@ -67,7 +68,6 @@ class _SearchScreenState extends State<SearchScreen> {
       setState(() => _loading = false);
     }
 
-    // update recent
     setState(() {
       _recent.removeWhere((e) => e.toLowerCase() == key.toLowerCase());
       _recent.insert(0, key);
@@ -89,19 +89,19 @@ class _SearchScreenState extends State<SearchScreen> {
     final showRecent = _query.trim().isEmpty;
 
     return Scaffold(
-      appBar: const AppBackBar(title: 'Search'),
+      appBar: const AppBackBar(title: 'Tìm kiếm'),
       body: Padding(
         padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
         child: Column(
           children: [
-            /// ================= SEARCH BOX =================
+            /// SEARCH BOX
             TextField(
               controller: _controller,
               textInputAction: TextInputAction.search,
               onSubmitted: _submitSearch,
               decoration: AppTheme.input(
                 '',
-                hint: 'Search for clothes...',
+                hint: 'Tìm kiếm...',
               ).copyWith(
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: IconButton(
@@ -113,7 +113,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
             const SizedBox(height: 12),
 
-            /// ================= BODY =================
+            /// BODY
             Expanded(
               child: _loading
                   ? const Center(child: CircularProgressIndicator())
@@ -163,12 +163,15 @@ class _RecentList extends StatelessWidget {
         Row(
           children: [
             const Text(
-              'Recent Searches',
+              'Tìm kiếm gần đây',
               style: TextStyle(fontWeight: FontWeight.w700),
             ),
             const Spacer(),
             if (items.isNotEmpty)
-              TextButton(onPressed: onClearAll, child: const Text('Clear all')),
+              TextButton(
+                onPressed: onClearAll,
+                child: const Text('Xóa lịch sử tìm kiếm'),
+              ),
           ],
         ),
         const SizedBox(height: 6),
@@ -176,7 +179,7 @@ class _RecentList extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(top: 40),
             child: Text(
-              'No recent searches',
+              'Không có tìm kiếm gần đây',
               style: TextStyle(color: Colors.grey.shade600),
               textAlign: TextAlign.center,
             ),
@@ -198,8 +201,7 @@ class _RecentList extends StatelessWidget {
   }
 }
 
-/* ================= RESULT GRID ================= */
-
+/* ================= RESULT GRID ================ */
 class _ResultGrid extends StatelessWidget {
   final List<ProductRecommend> results;
   const _ResultGrid({required this.results});
@@ -210,57 +212,14 @@ class _ResultGrid extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        childAspectRatio: 0.65,
-        crossAxisSpacing: 10,
-        mainAxisSpacing: 10,
+        mainAxisSpacing: 14,
+        crossAxisSpacing: 14,
+        childAspectRatio: 0.63, // giống Home
       ),
       itemCount: results.length,
       itemBuilder: (context, i) {
-        final p = results[i];
-
-        return GestureDetector(
-          onTap: () {
-            Navigator.pushNamed(
-              context,
-              '/product-detail',
-              arguments: p.sanPhamId,
-            );
-          },
-          child: Card(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Image.network(
-                    p.imageUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) =>
-                    const Icon(Icons.broken_image),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: Text(
-                    p.tenSanPham,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: Text(
-                    '${p.giaBan} ₫',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.red,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 6),
-              ],
-            ),
-          ),
-        );
+        final product = _toProduct(results[i]);
+        return ProductCard(product: product);
       },
     );
   }
@@ -280,12 +239,12 @@ class _EmptyResult extends StatelessWidget {
           Icon(Icons.search, size: 56, color: AppTheme.lightText),
           SizedBox(height: 12),
           Text(
-            'No Results Found!',
+            'Không tìm thấy kết quả nào!',
             style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
           ),
           SizedBox(height: 6),
           Text(
-            'Try a similar word or something\nmore general.',
+            'Hãy thử một từ tương tự hoặc một từ nào đó mang tính khái quát hơn.',
             textAlign: TextAlign.center,
             style: TextStyle(color: AppTheme.lightText),
           ),
@@ -293,4 +252,13 @@ class _EmptyResult extends StatelessWidget {
       ),
     );
   }
+}
+
+Product _toProduct(ProductRecommend r) {
+  return Product(
+    sanPhamId: r.sanPhamId,
+    tenSanPham: r.tenSanPham,
+    giaBan: r.giaBan,
+    imageUrl: r.imageUrl,
+  );
 }

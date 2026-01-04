@@ -20,7 +20,7 @@ class TrackOrderScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBackBar(title: 'Track Order #${order.id}'),
+      appBar: AppBackBar(title: 'Theo dõi đơn hàng #${order.id}'),
       body: Stack(
         children: [
           _OrderMap(center: target, route: route),
@@ -125,8 +125,8 @@ class _OrderStatusSheet extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Order Status', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-              Text('Waybill: $maVanDon', style: const TextStyle(color: Colors.blue, fontSize: 12, fontWeight: FontWeight.w600)),
+              const Text('Trạng thái đơn hàng', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              Text('Mã vận đơn: $maVanDon', style: const TextStyle(color: Colors.blue, fontSize: 12, fontWeight: FontWeight.w600)),
             ],
           ),
           const SizedBox(height: 20),
