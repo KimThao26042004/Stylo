@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../order_screen/myOrders_screen.dart';
-import 'ChangePasswordScreen.dart';
 import 'myDetail_screen.dart';
 import 'setupNotification_screen.dart';
 import '../cart_screen/address_screen.dart';
@@ -9,6 +8,7 @@ import '../categories/categories_screen.dart';
 import '../savedItems_screen/saved_screen.dart';
 import '../cart_screen/cart_screen.dart';
 import '../auth_screen/login_screen.dart';
+import 'changePassword_screen.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -56,39 +56,40 @@ class _AccountScreenState extends State<AccountScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Account', style: TextStyle(fontWeight: FontWeight.w700)),
+        title: const Text('Tài khoản', style: TextStyle(fontWeight: FontWeight.w700)),
         centerTitle: true,
         automaticallyImplyLeading: false,
         scrolledUnderElevation: 0,
       ),      body: ListView(
         children: [
-          _tile(context, Icons.inventory_2_outlined, 'My Orders', () {
+          _tile(context, Icons.inventory_2_outlined, 'Đơn hàng', () {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const MyOrdersScreen()),
             );
           }),
           _divider(),
-          _tile(context, Icons.person_outline, 'My Details', () {
+          _tile(context, Icons.person_outline, 'Thông tin cá nhân', () {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const MyDetailScreen()),
             );
           }),
-          _tile(context, Icons.lock_outline, 'Change Password', () {
+          // Change Password
+          _tile(context, Icons.lock_outline, 'Đổi mật khẩu', () {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const ChangePasswordScreen()),
             );
           }),
-          _tile(context, Icons.home_outlined, 'Address Book', () {
+          _tile(context, Icons.home_outlined, 'Danh sách địa chỉ', () {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const AddressScreen()),
             );
           }),
-          _tile(context, Icons.credit_card_outlined, 'Payment Methods', () {}),
-          _tile(context, Icons.notifications_none, 'Notifications', () {
+          _tile(context, Icons.credit_card_outlined, 'Phương thức thanh toán', () {}),
+          _tile(context, Icons.notifications_none, 'Thông báo', () {
               Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const NotificationScreen()),
@@ -96,11 +97,11 @@ class _AccountScreenState extends State<AccountScreen> {
           }),
           _divider(),
           _tile(context, Icons.help_outline, 'FAQs', () {}),
-          _tile(context, Icons.headset_mic_outlined, 'Help Center', () {}),
+          _tile(context, Icons.headset_mic_outlined, 'Hỗ trợ', () {}),
           const SizedBox(height: 8),
           ListTile(
             leading: const Icon(Icons.logout, color: Colors.red),
-            title: const Text('Logout',
+            title: const Text('Đăng xuất',
                 style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600)),
             onTap: () {
               // TODO: clear token / user nếu có (sau này)
@@ -120,14 +121,14 @@ class _AccountScreenState extends State<AccountScreen> {
         onTap: _onBottomTap,
         type: BottomNavigationBarType.fixed,
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.category), label: 'Categories'),
+          BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: 'Trang chủ'),
+          BottomNavigationBarItem(icon: Icon(Icons.category), label: 'Phân loại'),
           BottomNavigationBarItem(
-              icon: Icon(Icons.favorite_border), label: 'Saved'),
+              icon: Icon(Icons.favorite_border), label: 'Yêu thích'),
           BottomNavigationBarItem(
-              icon: Icon(Icons.shopping_cart_outlined), label: 'Cart'),
+              icon: Icon(Icons.shopping_cart_outlined), label: 'Giỏ hàng'),
           BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline), label: 'Account'),
+              icon: Icon(Icons.person_outline), label: 'Tài khoản'),
         ],
       ),
     );

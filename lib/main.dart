@@ -30,7 +30,7 @@ void main() {
         ),
 
         ChangeNotifierProvider(
-            create: (_) => ProductProvider(),
+          create: (_) => ProductProvider(),
         ),
 
         ChangeNotifierProvider(
@@ -42,7 +42,6 @@ void main() {
         ),
 
         ChangeNotifierProvider(create: (_) => OrderProvider()),
-
 
       ],
       child: const MyApp(),

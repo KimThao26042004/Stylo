@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+
 import '../../models/product.dart';
 import '../../services/product_service.dart';
+import '../../widgets/product_card.dart';
 import '../products_screen/productDetail_screen.dart';
 
 class ListProductsScreen extends StatefulWidget {
@@ -60,57 +62,12 @@ class _ListProductsScreenState extends State<ListProductsScreen> {
         gridDelegate:
         const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
-          mainAxisSpacing: 12,
-          crossAxisSpacing: 12,
-          childAspectRatio: 0.66,
+          mainAxisSpacing: 14,
+          crossAxisSpacing: 14,
+          childAspectRatio: 0.63,
         ),
         itemBuilder: (_, i) {
-          final p = _products[i];
-          return InkWell(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => ProductDetailScreen(
-                    productId: p.sanPhamId,
-                  ),
-                ),
-              );
-            },
-            child: Card(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Image.network(
-                      p.imageUrl,
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8),
-                    child: Text(
-                      p.tenSanPham,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                  Padding(
-                    padding:
-                    const EdgeInsets.symmetric(horizontal: 8),
-                    child: Text(
-                      '${p.giaBan} đ',
-                      style: const TextStyle(
-                          fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
+          return ProductCard(product: _products[i]);
         },
       ),
     );

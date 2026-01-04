@@ -59,7 +59,7 @@ class _CartScreenState extends State<CartScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'My Cart',
+          'Giỏ hàng',
           style: TextStyle(fontWeight: FontWeight.w700),
         ),
         centerTitle: true,
@@ -102,11 +102,11 @@ class _CartScreenState extends State<CartScreen> {
             ),
             child: Column(
               children: [
-                _summaryRow('Sub-total', subTotal),
+                _summaryRow('Tổng phụ', subTotal),
                 _summaryRow('VAT (%)', _vat),
-                _summaryRow('Shipping fee', _shippingFee),
+                _summaryRow('Phí vận chuyển', _shippingFee),
                 const Divider(),
-                _summaryRow('Total', total, bold: true),
+                _summaryRow('Tổng', total, bold: true),
                 const SizedBox(height: 12),
                 SizedBox(
                   width: double.infinity,
@@ -146,12 +146,12 @@ class _CartScreenState extends State<CartScreen> {
         onTap: _onBottomTap,
         type: BottomNavigationBarType.fixed,
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.category), label: 'Categories'),
-          BottomNavigationBarItem(icon: Icon(Icons.favorite_border), label: 'Saved'),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Trang chủ'),
+          BottomNavigationBarItem(icon: Icon(Icons.category), label: 'Phân loại'),
+          BottomNavigationBarItem(icon: Icon(Icons.favorite_border), label: 'Yêu thích'),
           BottomNavigationBarItem(
-              icon: Icon(Icons.shopping_cart_outlined), label: 'Cart'),
-          BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Account'),
+              icon: Icon(Icons.shopping_cart_outlined), label: 'Giỏ hàng'),
+          BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Tài khoản'),
         ],
       ),
     );
@@ -214,7 +214,7 @@ class _CartItem extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Color: ${item.colorName} • Size: ${item.sizeName}',
+                  'Màu sắc: ${item.colorName} • Kích cỡ: ${item.sizeName}',
                   style: TextStyle(color: Colors.grey.shade600),
                 ),
 
@@ -304,7 +304,7 @@ class _EmptyCartView extends StatelessWidget {
           Icon(Icons.shopping_cart_outlined, size: 64, color: Colors.grey),
           SizedBox(height: 16),
           Text(
-            'Your Cart Is Empty!',
+            'Giỏ hàng rỗng!',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
           ),
         ],

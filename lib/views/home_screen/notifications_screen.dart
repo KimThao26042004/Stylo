@@ -51,13 +51,13 @@ class _EmptyNotifications extends StatelessWidget {
             Icon(Icons.notifications_none, size: 64, color: AppTheme.lightText),
             SizedBox(height: 16),
             Text(
-              "You haven't gotten any\nnotifications yet!",
+              "Bạn chưa nhận được bất kỳ thông báo nào!",
               textAlign: TextAlign.center,
               style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
             ),
             SizedBox(height: 8),
             Text(
-              "We'll alert you when something\ncool happens.",
+              "Chúng tôi sẽ thông báo cho bạn khi có điều gì thú vị xảy ra.",
               textAlign: TextAlign.center,
               style: TextStyle(color: AppTheme.lightText),
             ),

@@ -9,7 +9,8 @@ class CartProvider extends ChangeNotifier {
 
   List<CartItem> get items => _items;
 
-  int get totalQuantity => _items.fold(0, (sum, e) => sum + e.quantity);
+  // Getter for item count
+  int get itemCount => _items.fold(0, (sum, e) => sum + e.quantity); // Get total quantity of items
 
   double get subTotal => _items.fold(0, (sum, e) => sum + (e.price * e.quantity));
 
@@ -19,26 +20,27 @@ class CartProvider extends ChangeNotifier {
   double get total => subTotal + shippingFee + vat;
 
   /// ===== ADD TO CART =====
-  /// Nhận trực tiếp bienTheId từ màn hình chi tiết sản phẩm
   void add({
     required ProductDetail product,
-    required int bienTheId, // THÊM BIẾN NÀY
+    required int bienTheId,
     required int sizeId,
     required String sizeName,
     required int colorId,
     required String colorName,
     required int price,
   }) {
-    // Kiểm tra trùng dựa trên bienTheId (mã định danh duy nhất của cặp màu/size)
+    // Check if the product already exists in the cart
     final index = _items.indexWhere((e) => e.bienTheId == bienTheId);
 
     if (index >= 0) {
+      // If exists, increase the quantity
       _items[index] = _items[index].copyWith(quantity: _items[index].quantity + 1);
     } else {
+      // Otherwise, add a new item to the cart
       _items.add(
         CartItem(
           product: product,
-          bienTheId: bienTheId, // LƯU VÀO CART ITEM
+          bienTheId: bienTheId,
           quantity: 1,
           price: price.toDouble(),
           sizeId: sizeId,
@@ -67,15 +69,14 @@ class CartProvider extends ChangeNotifier {
     if (index >= 0) {
       _items[index] = _items[index].copyWith(quantity: _items[index].quantity + 1);
     } else {
-      // CẬP NHẬT TẠI ĐÂY: Khớp chính xác với tham số của ProductDetail
       final minimalProduct = ProductDetail(
-        sanPhamId: sanPhamId,           // Đổi từ id thành sanPhamId
+        sanPhamId: sanPhamId,
         name: productName,
         description: "",
-        basePrice: price,               // Model của bạn dùng int basePrice
+        basePrice: price,
         imageUrl: imageUrl,
-        availableColors: [],           // Khớp với tên tham số bắt buộc
-        availableSizes: [],            // Khớp với tên tham số bắt buộc
+        availableColors: [],
+        availableSizes: [],
       );
 
       _items.add(
@@ -83,7 +84,7 @@ class CartProvider extends ChangeNotifier {
           product: minimalProduct,
           bienTheId: bienTheId,
           quantity: 1,
-          price: price.toDouble(),      // Chuyển sang double nếu CartItem dùng double
+          price: price.toDouble(),
           sizeId: sizeId,
           sizeName: sizeName,
           colorId: colorId,
@@ -130,7 +131,6 @@ class CartProvider extends ChangeNotifier {
     _isProcessing = true;
     notifyListeners();
 
-    // Thay đổi localhost thành 10.0.2.2 nếu dùng máy ảo Android
     final url = Uri.parse("https://localhost:7200/api/Order/checkout");
 
     try {
@@ -141,7 +141,7 @@ class CartProvider extends ChangeNotifier {
         "kenhBan": "APP_MOBILE",
         "phiVanChuyen": shippingFee,
         "items": _items.map((item) => {
-          "bienTheId": item.bienTheId, // GỬI ĐÚNG ID BIẾN THỂ LÊN SERVER
+          "bienTheId": item.bienTheId,
           "soLuong": item.quantity,
           "donGia": item.price.toDouble(),
         }).toList(),
@@ -169,5 +169,4 @@ class CartProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
-
 }

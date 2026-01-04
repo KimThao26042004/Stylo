@@ -106,7 +106,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Categories', style: TextStyle(fontWeight: FontWeight.w700)),
+        title: const Text('Phân loại', style: TextStyle(fontWeight: FontWeight.w700)),
         centerTitle: true,
         automaticallyImplyLeading: false,
         scrolledUnderElevation: 0,
@@ -148,15 +148,15 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(
-              icon: Icon(Icons.home_filled), label: 'Home'),
+              icon: Icon(Icons.home_filled), label: 'Trang chủ'),
           BottomNavigationBarItem(
-              icon: Icon(Icons.category), label: 'Categories'),
+              icon: Icon(Icons.category), label: 'Phân loại'),
           BottomNavigationBarItem(
-              icon: Icon(Icons.favorite_border), label: 'Saved'),
+              icon: Icon(Icons.favorite_border), label: 'Yêu thích'),
           BottomNavigationBarItem(
-              icon: Icon(Icons.shopping_cart_outlined), label: 'Cart'),
+              icon: Icon(Icons.shopping_cart_outlined), label: 'Giỏ hàng'),
           BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline), label: 'Account'),
+              icon: Icon(Icons.person_outline), label: 'Tài khoản'),
         ],
       ),
     );
