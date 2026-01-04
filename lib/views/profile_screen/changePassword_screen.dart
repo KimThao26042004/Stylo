@@ -27,6 +27,35 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     super.dispose();
   }
 
+  /// Hàm hiển thị thông báo đẹp mắt
+  void _showStatusMessage(String message, {bool isError = true}) {
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(
+              isError ? Icons.error_outline : Icons.check_circle_outline,
+              color: Colors.white,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                message,
+                style: const TextStyle(color: Colors.white, fontSize: 14),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: isError ? Colors.redAccent : Colors.green.shade600,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(20),
+        duration: Duration(seconds: isError ? 3 : 2),
+      ),
+    );
+  }
+
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -40,28 +69,21 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     if (!mounted) return;
 
     if (success) {
-      // Thông báo thành công và yêu cầu đăng nhập lại
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Mật khẩu đã được thay đổi. Vui lòng đăng nhập lại.'),
-          backgroundColor: Colors.green,
-        ),
-      );
+      // Hiển thị thông báo thành công đẹp
+      _showStatusMessage('Đổi mật khẩu thành công! Vui lòng đăng nhập lại.', isError: false);
 
-      // Điều hướng về Login và xóa hết stack (Logout sạch sẽ)
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
-            (route) => false,
-      );
+      // Đợi một lát để user kịp nhìn thấy thông báo trước khi chuyển trang
+      Future.delayed(const Duration(milliseconds: 1500), () {
+        if (!mounted) return;
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+              (route) => false,
+        );
+      });
     } else {
-      // Hiển thị lỗi từ Backend (Ví dụ: "Mật khẩu cũ không chính xác")
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(provider.error ?? 'Cập nhật thất bại'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      // Hiển thị lỗi từ Backend
+      _showStatusMessage(provider.error ?? 'Đổi mật khẩu thất bại', isError: true);
     }
   }
 

@@ -98,6 +98,40 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     }
   }
 
+  void _showCustomToast(String message, {bool isError = false, IconData? icon}) {
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(
+              icon ?? (isError ? Icons.error_outline : Icons.check_circle_outline),
+              color: Colors.white,
+              size: 22, // Kích thước icon vừa phải
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                message,
+                style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500
+                ),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: isError ? Colors.redAccent : Colors.green.shade600,
+        behavior: SnackBarBehavior.floating,
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(20),
+        duration: Duration(seconds: isError ? 3 : 2),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_loading) {
@@ -198,16 +232,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   child: GestureDetector(
                     onTap: () {
                       saved.toggle(p);
-
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            saved.isSaved(p.sanPhamId)
-                                ? 'Đã thêm vào danh sách yêu thích'
-                                : 'Đã bỏ khỏi danh sách yêu thích',
-                          ),
-                          duration: const Duration(seconds: 1),
-                        ),
+                      final isNowSaved = saved.isSaved(p.sanPhamId);
+                      _showCustomToast(
+                        isNowSaved ? 'Đã thêm vào danh sách yêu thích' : 'Đã xóa khỏi danh sách yêu thích',
+                        icon: isNowSaved ? Icons.favorite : Icons.favorite_border,
                       );
                     },
                     child: Container(
@@ -422,9 +450,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               ),
               onPressed: () {
                 if (_selectedMauId == null || _selectedSizeId == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Vui lòng chọn màu và size')),
-                  );
+                  _showCustomToast('Vui lòng chọn đầy đủ màu sắc và kích cỡ', isError: true);
                   return;
                 }
                 final selectedSize = p.availableSizes
@@ -440,9 +466,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   sizeName: selectedSize.kyHieu,
                   colorName: selectedColor.ten,
                   price: _price!,
+                  quantity: _quantity,
                 );
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Đã thêm vào giỏ hàng')),
+                _showCustomToast(
+                  'Sản phẩm đã được thêm vào giỏ hàng',
+                  icon: Icons.add_shopping_cart,
                 );
               },
 

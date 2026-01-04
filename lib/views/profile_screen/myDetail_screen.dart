@@ -41,6 +41,35 @@ class _MyDetailScreenState extends State<MyDetailScreen> {
     super.dispose();
   }
 
+  /// Hàm hiển thị thông báo đẹp mắt (Đồng bộ với LoginScreen)
+  void _showStatusMessage(String message, {bool isError = true}) {
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(
+              isError ? Icons.error_outline : Icons.check_circle_outline,
+              color: Colors.white,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                message,
+                style: const TextStyle(color: Colors.white, fontSize: 14),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: isError ? Colors.redAccent : Colors.green.shade600,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(20),
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
   void _fillForm(AccountProfile p) {
     _name.text = p.fullName ?? '';
     _email.text = p.email ?? '';
@@ -88,15 +117,11 @@ class _MyDetailScreenState extends State<MyDetailScreen> {
     if (!mounted) return;
 
     if (provider.error != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(provider.error!)),
-      );
+      _showStatusMessage(provider.error!, isError: true);
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Đã lưu thông tin')),
-    );
+    _showStatusMessage('Cập nhật thành công!', isError: false);
   }
 
 

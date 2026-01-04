@@ -1,3 +1,4 @@
+import '../models/location_model.dart';
 import 'api_client.dart';
 import '../models/account_profile.dart';
 import '../models/account_address.dart';
@@ -6,6 +7,27 @@ import 'package:dio/dio.dart';
 
 class AccountService {
   final ApiClient _api = ApiClient();
+  final Dio _publicDio = Dio();
+
+  // Lấy danh sách Tỉnh/Thành
+  Future<List<LocationModel>> getProvinces() async {
+    final res = await _publicDio.get("https://provinces.open-api.vn/api/p/");
+    return (res.data as List).map((e) => LocationModel.fromJson(e)).toList();
+  }
+
+  // Lấy Quận/Huyện theo mã Tỉnh
+  Future<List<LocationModel>> getDistricts(int provinceCode) async {
+    final res = await _publicDio.get("https://provinces.open-api.vn/api/p/$provinceCode?depth=2");
+    final List list = res.data['districts'];
+    return list.map((e) => LocationModel.fromJson(e)).toList();
+  }
+
+  // Lấy Xã/Phường theo mã Huyện
+  Future<List<LocationModel>> getWards(int districtCode) async {
+    final res = await _publicDio.get("https://provinces.open-api.vn/api/d/$districtCode?depth=2");
+    final List list = res.data['wards'];
+    return list.map((e) => LocationModel.fromJson(e)).toList();
+  }
 
   /* ================= PROFILE ================= */
 
@@ -56,6 +78,20 @@ class AccountService {
   }) async {
     await _api.dio.post("/api/Account/addresses", data: {
       "diaChiID": 0,
+      "diaChiChiTiet": diaChiChiTiet,
+      "loaiDiaChi": loaiDiaChi,
+      "isDefault": isDefault,
+    });
+  }
+
+  Future<void> updateAddress({
+    required int id,
+    required String diaChiChiTiet,
+    required String loaiDiaChi,
+    required bool isDefault,
+  }) async {
+    await _api.dio.put("/api/Account/addresses/$id", data: {
+      "diaChiID": id,
       "diaChiChiTiet": diaChiChiTiet,
       "loaiDiaChi": loaiDiaChi,
       "isDefault": isDefault,

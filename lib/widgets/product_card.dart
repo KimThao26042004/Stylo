@@ -13,7 +13,7 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final priceFormat = NumberFormat("#,##0", "en_US");
+    final priceFormat = NumberFormat("#,##0", "vi_VN");
 
     return InkWell(
       borderRadius: BorderRadius.circular(16),

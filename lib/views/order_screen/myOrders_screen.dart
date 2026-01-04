@@ -9,6 +9,7 @@ import '../cart_screen/cart_screen.dart';
 import '../products_screen/productDetail_screen.dart';
 import 'orderDetail_screen.dart';
 import 'trackOrder_screen.dart';
+import 'package:intl/intl.dart';
 
 class MyOrdersScreen extends StatefulWidget {
   const MyOrdersScreen({super.key});
@@ -177,13 +178,14 @@ class _OngoingList extends StatelessWidget {
                             Text(item.name,
                                 style: const TextStyle(
                                     fontWeight: FontWeight.w600)),
-                            Text('Kích cỡ ${item.size} | Số lượng: ${item.quantity}',
+                            Text('Kích cỡ: ${item.size} | Số lượng: ${item.quantity}',
                                 style: const TextStyle(
                                     color: Colors.grey, fontSize: 13)),
                             const SizedBox(height: 4),
-                            Text('\$ ${item.price.toInt()}',
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.w700)),
+                            Text(
+                              '${NumberFormat('#,##0', 'vi_VN').format(item.price)} đ',
+                              style: const TextStyle(fontWeight: FontWeight.w700),
+                            ),
                           ],
                         ),
                       ),
@@ -196,9 +198,10 @@ class _OngoingList extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text("Tổng: \$${order.tongThanhToan.toInt()}",
-                        style: const TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 16)),
+                    Text(
+                      "Tổng: ${NumberFormat('#,##0', 'vi_VN').format(order.tongThanhToan)} đ",
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
                     OutlinedButton(
                       onPressed: () {
                         // Nút Track Order vẫn giữ chức năng chuyển đến bản đồ
@@ -301,7 +304,9 @@ class _CompletedList extends StatelessWidget {
                     return ListTile(
                       leading: Image.network(item.imageUrl, width: 40, errorBuilder: (_,__,___)=> const Icon(Icons.image)),
                       title: Text(item.name, maxLines: 1, overflow: TextOverflow.ellipsis),
-                      subtitle: Text("Kích cỡ: ${item.size} - \$${item.price.toInt()}"),
+                      subtitle: Text(
+                        "Kích cỡ: ${item.size} - ${NumberFormat('#,##0', 'vi_VN').format(item.price)} đ",
+                      ),
                       onTap: () {
                         Navigator.pop(context);
                         _processReorderItem(context, item);
@@ -384,11 +389,13 @@ class _CompletedList extends StatelessWidget {
                                 style: const TextStyle(fontWeight: FontWeight.w600),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis),
-                            Text('Kích cỡ ${item.size} | Số lượng: ${item.quantity}',
+                            Text('Kích cỡ: ${item.size} | Số lượng: ${item.quantity}',
                                 style: const TextStyle(color: Colors.grey, fontSize: 13)),
                             const SizedBox(height: 4),
-                            Text('\$ ${item.price.toInt()}',
-                                style: const TextStyle(fontWeight: FontWeight.w700)),
+                            Text(
+                              '${NumberFormat('#,##0', 'vi_VN').format(item.price)} đ',
+                              style: const TextStyle(fontWeight: FontWeight.w700),
+                            ),
                           ],
                         ),
                       ),
@@ -403,7 +410,7 @@ class _CompletedList extends StatelessWidget {
                   children: [
                     // TỔNG TIỀN
                     Text(
-                      "Tổng: \$${order.tongThanhToan.toInt()}",
+                      "Tổng: ${NumberFormat('#,##0', 'vi_VN').format(order.tongThanhToan)} đ",
                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                     ),
 

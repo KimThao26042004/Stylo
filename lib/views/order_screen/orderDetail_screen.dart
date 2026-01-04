@@ -12,6 +12,7 @@ class OrderDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final df = DateFormat('dd MMM yyyy, HH:mm');
+    final currencyFormat = NumberFormat("#,##0", "vi_VN");
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
@@ -61,7 +62,7 @@ class OrderDetailScreen extends StatelessWidget {
                     ),
                     title: Text(item.name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
                     subtitle: Text('Kích cỡ: ${item.size} | Số lượng: ${item.quantity}'),
-                    trailing: Text('\$${item.price.toInt()}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                    trailing: Text('${currencyFormat.format(item.price)} đ', style: const TextStyle(fontWeight: FontWeight.bold)),
                   );
                 },
               ),
@@ -75,11 +76,12 @@ class OrderDetailScreen extends StatelessWidget {
             _buildSection(
               child: Column(
                 children: [
-                  _buildInfoRow('Tổng phụ', '\$${_calculateSubtotal().toInt()}'),
-                  _buildInfoRow('Phí vận chuyển', '\$0'), // Bạn có thể thêm trường này vào model nếu cần
-                  _buildInfoRow('Giảm giá', '-\$0'),
+                  // SỬA TẠI ĐÂY: Các dòng tóm tắt tiền bạc
+                  _buildInfoRow('Tổng phụ', '${currencyFormat.format(_calculateSubtotal())} đ'),
+                  _buildInfoRow('Phí vận chuyển', '30.000 đ'),
+                  _buildInfoRow('Giảm giá', '-0 đ'),
                   const Divider(),
-                  _buildInfoRow('Tổng thanh toán', '\$${order.tongThanhToan.toInt()}',
+                  _buildInfoRow('Tổng thanh toán', '${currencyFormat.format(order.tongThanhToan)} đ',
                       isBold: true, fontSize: 18, valueColor: Colors.black),
                 ],
               ),

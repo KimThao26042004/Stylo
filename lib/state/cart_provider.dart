@@ -28,20 +28,23 @@ class CartProvider extends ChangeNotifier {
     required int colorId,
     required String colorName,
     required int price,
+    int quantity = 1,
   }) {
     // Check if the product already exists in the cart
     final index = _items.indexWhere((e) => e.bienTheId == bienTheId);
 
     if (index >= 0) {
       // If exists, increase the quantity
-      _items[index] = _items[index].copyWith(quantity: _items[index].quantity + 1);
+      _items[index] = _items[index].copyWith(
+        quantity: _items[index].quantity + quantity,
+      );
     } else {
       // Otherwise, add a new item to the cart
       _items.add(
         CartItem(
           product: product,
           bienTheId: bienTheId,
-          quantity: 1,
+          quantity: quantity,
           price: price.toDouble(),
           sizeId: sizeId,
           sizeName: sizeName,

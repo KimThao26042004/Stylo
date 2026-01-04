@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../../state/cart_provider.dart';
 import '../../models/cart_item.dart';
 import '../home_screen/home_screen.dart';
@@ -9,6 +8,7 @@ import '../categories/categories_screen.dart';
 import '../savedItems_screen/saved_screen.dart';
 import '../profile_screen/account_screen.dart';
 import '../home_screen/notifications_screen.dart';
+import 'package:intl/intl.dart';
 
 class CartScreen extends StatefulWidget {
   static const String routeName = '/cart';
@@ -20,8 +20,10 @@ class CartScreen extends StatefulWidget {
 
 class _CartScreenState extends State<CartScreen> {
   int _tabIndex = 3;
+  // Format dùng dấu chấm phân cách hàng nghìn
+  final _currencyFormat = NumberFormat("#,##0", "vi_VN");
 
-  static const double _shippingFee = 30000;
+  static const double _shippingFee = 30000; // Đã sửa lại định dạng số
   static const double _vat = 0.0;
 
   void _onBottomTap(int i) {
@@ -87,7 +89,10 @@ class _CartScreenState extends State<CartScreen> {
             child: ListView.builder(
               padding: const EdgeInsets.all(16),
               itemCount: items.length,
-              itemBuilder: (_, i) => _CartItem(item: items[i]),
+              itemBuilder: (_, i) => _CartItem(
+                item: items[i],
+                format: _currencyFormat, // Đã truyền format hợp lệ
+              ),
             ),
           ),
 
@@ -165,7 +170,8 @@ class _CartScreenState extends State<CartScreen> {
         children: [
           Text(label),
           Text(
-            '${value.toStringAsFixed(0)} đ',
+            // Sửa từ toStringAsFixed sang dùng _currencyFormat
+            '${_currencyFormat.format(value)} đ',
             style: TextStyle(
               fontWeight: bold ? FontWeight.w700 : FontWeight.w400,
             ),
@@ -179,7 +185,10 @@ class _CartScreenState extends State<CartScreen> {
 /* =================== CART ITEM =================== */
 class _CartItem extends StatelessWidget {
   final CartItem item;
-  const _CartItem({required this.item});
+  final NumberFormat format; // Đã thêm biến định dạng
+
+  // Đã cập nhật Constructor để nhận format
+  const _CartItem({required this.item, required this.format});
 
   @override
   Widget build(BuildContext context) {
@@ -214,13 +223,14 @@ class _CartItem extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Màu sắc: ${item.colorName} • Kích cỡ: ${item.sizeName}',
+                  'Màu sắc: ${item.colorName} | Kích cỡ: ${item.sizeName}',
                   style: TextStyle(color: Colors.grey.shade600),
                 ),
 
                 const SizedBox(height: 6),
                 Text(
-                  '${item.price} đ',
+                  // Đã sử dụng tham số format được truyền vào
+                  '${format.format(item.price)} đ',
                   style: const TextStyle(fontWeight: FontWeight.w700),
                 ),
               ],

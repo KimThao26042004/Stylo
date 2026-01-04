@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart'; // Đảm bảo đã import Dio
+import '../models/location_model.dart';
 import '../services/account_service.dart';
 import '../models/account_profile.dart';
 import '../models/account_address.dart';
@@ -9,6 +10,9 @@ class AccountProvider extends ChangeNotifier {
 
   AccountProfile? profile;
   List<AccountAddress> addresses = [];
+  List<LocationModel> provinces = [];
+  List<LocationModel> districts = [];
+  List<LocationModel> wards = [];
 
   String? _token;
   int? _userId;
@@ -100,6 +104,25 @@ class AccountProvider extends ChangeNotifier {
     });
   }
 
+  Future<void> updateAddress({
+    required int id,
+    required String diaChiChiTiet,
+    required String loaiDiaChi,
+    required bool isDefault,
+  }) async {
+    await _run(() async {
+      // 1. Gọi service để cập nhật dữ liệu trên server
+      await _service.updateAddress(
+        id: id,
+        diaChiChiTiet: diaChiChiTiet,
+        loaiDiaChi: loaiDiaChi,
+        isDefault: isDefault,
+      );
+      // 2. Load lại danh sách địa chỉ mới nhất sau khi cập nhật thành công
+      addresses = await _service.getAddresses();
+    });
+  }
+
   Future<void> setDefaultAddress(int id) async {
     await _run(() async {
       await _service.setDefaultAddress(id);
@@ -113,6 +136,28 @@ class AccountProvider extends ChangeNotifier {
       await _service.deleteAddress(id);
       addresses = await _service.getAddresses();
     });
+  }
+
+  Future<void> loadProvinces() async {
+    provinces = await _service.getProvinces();
+    notifyListeners();
+  }
+
+  Future<void> loadDistricts(int provinceCode) async {
+    districts = await _service.getDistricts(provinceCode);
+    wards = []; // Reset xã khi đổi tỉnh
+    notifyListeners();
+  }
+
+  Future<void> loadWards(int districtCode) async {
+    wards = await _service.getWards(districtCode);
+    notifyListeners();
+  }
+
+  // Xóa trắng dữ liệu đệm khi đóng màn hình
+  void clearLocationData() {
+    districts = [];
+    wards = [];
   }
 
   void clearError() {
