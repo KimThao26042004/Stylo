@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+
 import '../models/product_recommend.dart';
 
 class RecommendCard extends StatelessWidget {
@@ -7,7 +9,10 @@ class RecommendCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    final priceFormat = NumberFormat("#,##0", "vi_VN");
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
       onTap: () {
         Navigator.pushNamed(
           context,
@@ -18,47 +23,67 @@ class RecommendCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(16),
           boxShadow: const [
-            BoxShadow(color: Color(0x11000000), blurRadius: 6),
+            BoxShadow(
+              color: Color(0x11000000),
+              blurRadius: 8,
+              offset: Offset(0, 4),
+            ),
           ],
         ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            /// IMAGE
+            // ===== IMAGE (GIỐNG PRODUCT CARD) =====
             AspectRatio(
-              aspectRatio: 1,
+              aspectRatio: 1 / 1.25,
               child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
+                borderRadius:
+                const BorderRadius.vertical(top: Radius.circular(16)),
                 child: Image.network(
                   product.imageUrl,
                   fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) =>
+                  const Icon(Icons.broken_image),
                 ),
               ),
             ),
 
-            Padding(
-              padding: const EdgeInsets.all(8),
+            // ===== CONTENT =====
+            SizedBox(
+              height: 76, // tổng chiều cao content
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  /// NAME
-                  Text(
-                    product.tenSanPham,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 13),
+                  // NAME – LUÔN CAO BẰNG NHAU
+                  SizedBox(
+                    height: 36, // đủ cho 2 dòng
+                    child: Text(
+                      product.tenSanPham,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                   ),
 
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 4),
 
-                  /// PRICE
-                  Text(
-                    '${product.giaBan} đ',
-                    style: const TextStyle(
-                      color: Colors.red,
-                      fontWeight: FontWeight.bold,
+                  // PRICE – CỐ ĐỊNH
+                  SizedBox(
+                    height: 20,
+                    child: Center(
+                      child: Text(
+                        '${priceFormat.format(product.giaBan)} đ',
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.red,
+                        ),
+                      ),
                     ),
                   ),
                 ],

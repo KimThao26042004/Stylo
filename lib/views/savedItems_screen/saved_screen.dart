@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../auth_screen/auth_common.dart';
 import '../home_screen/home_screen.dart';
 import '../categories/categories_screen.dart';
 import '../cart_screen/cart_screen.dart';
 import '../profile_screen/account_screen.dart';
 import '../home_screen/notifications_screen.dart';
 
+import '../../models/product.dart';
 import '../../models/product_detail.dart';
 import '../../state/saved_provider.dart';
+import '../../widgets/product_card.dart';
 
 class SavedScreen extends StatefulWidget {
   static const String routeName = '/saved';
@@ -20,7 +21,7 @@ class SavedScreen extends StatefulWidget {
 }
 
 class _SavedScreenState extends State<SavedScreen> {
-  int _tabIndex = 2; // Saved
+  int _tabIndex = 2;
 
   void _openNotifications() {
     Navigator.push(
@@ -29,7 +30,6 @@ class _SavedScreenState extends State<SavedScreen> {
     );
   }
 
-  // ---- Bottom nav ----
   void _onBottomTap(int i) {
     if (_tabIndex == i) return;
     setState(() => _tabIndex = i);
@@ -69,22 +69,17 @@ class _SavedScreenState extends State<SavedScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Saved',
+          'Yêu thích',
           style: TextStyle(fontWeight: FontWeight.w700),
         ),
         centerTitle: true,
         automaticallyImplyLeading: false,
-        scrolledUnderElevation: 0,
         actions: [
           IconButton(
             onPressed: _openNotifications,
             icon: const Icon(Icons.notifications_none),
           ),
         ],
-        bottom: const PreferredSize(
-          preferredSize: Size.fromHeight(1),
-          child: Divider(height: 1),
-        ),
       ),
 
       /// ===== BODY =====
@@ -96,18 +91,29 @@ class _SavedScreenState extends State<SavedScreen> {
             return const _EmptySavedView();
           }
 
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: GridView.builder(
-              itemCount: items.length,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: 12,
-                crossAxisSpacing: 12,
-                childAspectRatio: .82,
-              ),
-              itemBuilder: (_, i) => _SavedCard(product: items[i]),
+          /// convert ProductDetail → Product (CHỈ ĐỂ HIỂN THỊ)
+          final products = items
+              .map(
+                (p) => Product(
+              sanPhamId: p.sanPhamId,
+              tenSanPham: p.name,
+              giaBan: p.basePrice,
+              imageUrl: p.imageUrl,
             ),
+          )
+              .toList();
+
+          return GridView.builder(
+            padding: const EdgeInsets.all(12),
+            itemCount: products.length,
+            gridDelegate:
+            const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              mainAxisSpacing: 14,
+              crossAxisSpacing: 14,
+              childAspectRatio: 0.63,
+            ),
+            itemBuilder: (_, i) => ProductCard(product: products[i]),
           );
         },
       ),
@@ -119,15 +125,15 @@ class _SavedScreenState extends State<SavedScreen> {
         type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(
-              icon: Icon(Icons.home_filled), label: 'Home'),
+              icon: Icon(Icons.home_filled), label: 'Trang chủ'),
           BottomNavigationBarItem(
-              icon: Icon(Icons.category), label: 'Categories'),
+              icon: Icon(Icons.category), label: 'Phân loại'),
           BottomNavigationBarItem(
-              icon: Icon(Icons.favorite), label: 'Saved'),
+              icon: Icon(Icons.favorite), label: 'Yêu thích'),
           BottomNavigationBarItem(
-              icon: Icon(Icons.shopping_cart_outlined), label: 'Cart'),
+              icon: Icon(Icons.shopping_cart_outlined), label: 'Giỏ hàng'),
           BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline), label: 'Account'),
+              icon: Icon(Icons.person_outline), label: 'Tài khoản'),
         ],
       ),
     );
@@ -140,11 +146,11 @@ class _EmptySavedView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
+    return const Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: const [
-          Icon(Icons.favorite_border, size: 64, color: AppTheme.lightText),
+        children: [
+          Icon(Icons.favorite_border, size: 64, color: Colors.grey),
           SizedBox(height: 16),
           Text(
             'No Saved Items!',
@@ -152,107 +158,9 @@ class _EmptySavedView extends StatelessWidget {
           ),
           SizedBox(height: 8),
           Text(
-            "You don't have any saved items.\nGo to home and add some.",
+            "Bạn chưa có sản phẩm yêu thích.\nHãy đến trang chủ và thêm sản phẩm yêu thích nhé !.",
             textAlign: TextAlign.center,
-            style: TextStyle(color: AppTheme.lightText),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// ===== SAVED PRODUCT CARD =====
-class _SavedCard extends StatelessWidget {
-  final ProductDetail product;
-  const _SavedCard({required this.product});
-
-  @override
-  Widget build(BuildContext context) {
-    final saved = context.read<SavedProvider>();
-
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
-        color: Colors.white,
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x11000000),
-            blurRadius: 8,
-            offset: Offset(0, 2),
-          )
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          /// IMAGE + HEART
-          Stack(
-            children: [
-              ClipRRect(
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(14),
-                  topRight: Radius.circular(14),
-                ),
-                child: AspectRatio(
-                  aspectRatio: 1.7,
-                  child: Image.network(
-                    product.imageUrl,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-              Positioned(
-                right: 8,
-                top: 8,
-                child: CircleAvatar(
-                  radius: 16,
-                  backgroundColor: Colors.white,
-                  child: IconButton(
-                    padding: EdgeInsets.zero,
-                    icon: const Icon(
-                      Icons.favorite,
-                      color: Colors.red,
-                      size: 18,
-                    ),
-                    onPressed: () {
-                      saved.toggle(product);
-
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Đã bỏ khỏi danh sách yêu thích'),
-                          duration: Duration(seconds: 1),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 8),
-
-          /// NAME
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            child: Text(
-              product.name,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-          ),
-
-          const SizedBox(height: 4),
-
-          /// PRICE
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            child: Text(
-              '${product.basePrice} đ',
-              style: const TextStyle(fontWeight: FontWeight.w700),
-            ),
+            style: TextStyle(color: Colors.grey),
           ),
         ],
       ),

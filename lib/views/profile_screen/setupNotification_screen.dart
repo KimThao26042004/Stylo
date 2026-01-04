@@ -25,7 +25,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const AppBackBar(title: 'Notifications'),
+      appBar: const AppBackBar(title: 'Thông báo'),
       body: ListView.separated(
         itemCount: _settings.length,
         separatorBuilder: (_, __) => const Divider(height: 1),

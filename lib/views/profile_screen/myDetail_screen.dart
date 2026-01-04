@@ -20,7 +20,7 @@ class _MyDetailScreenState extends State<MyDetailScreen> {
   final _dob = TextEditingController();
   final _phone = TextEditingController();
 
-  String _gender = 'Male';
+  String _gender = 'Nam';
   bool _filledOnce = false;
 
   @override
@@ -48,11 +48,11 @@ class _MyDetailScreenState extends State<MyDetailScreen> {
     _phone.text = p.phone ?? '';
 
     final g = (p.gender ?? '').toLowerCase();
-    _gender = g == 'female'
-        ? 'Female'
-        : g == 'male'
-        ? 'Male'
-        : 'Other';
+    _gender = g == 'Nữ'
+        ? 'Nữ'
+        : g == 'Nam'
+        ? 'Nam'
+        : 'Khác';
   }
 
   Future<void> _pickDate() async {
@@ -116,7 +116,7 @@ class _MyDetailScreenState extends State<MyDetailScreen> {
     }
 
     return Scaffold(
-      appBar: const AppBackBar(title: 'My Details'),
+      appBar: const AppBackBar(title: 'Thông tin cá nhân'),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Form(
@@ -125,16 +125,16 @@ class _MyDetailScreenState extends State<MyDetailScreen> {
             children: [
               TextFormField(
                 controller: _name,
-                decoration: AppTheme.input('Full Name'),
+                decoration: AppTheme.input('Họ tên'),
                 validator: (v) =>
-                (v == null || v.isEmpty) ? 'Required' : null,
+                (v == null || v.isEmpty) ? 'Bắt buộc' : null,
               ),
               const SizedBox(height: 12),
 
               //  Email / tên đăng nhập (chỉ hiển thị)
               TextFormField(
                 controller: _email,
-                decoration: AppTheme.input('Email / Username'),
+                decoration: AppTheme.input('Email / Tên đăng nhập'),
                 enabled: false,
               ),
               const SizedBox(height: 12),
@@ -143,7 +143,7 @@ class _MyDetailScreenState extends State<MyDetailScreen> {
               TextFormField(
                 controller: _dob,
                 readOnly: true,
-                decoration: AppTheme.input('Date of Birth').copyWith(
+                decoration: AppTheme.input('Ngày sinh').copyWith(
                   suffixIcon: IconButton(
                     icon: const Icon(Icons.calendar_today_outlined),
                     onPressed: _pickDate,
@@ -153,14 +153,14 @@ class _MyDetailScreenState extends State<MyDetailScreen> {
               const SizedBox(height: 12),
 
               DropdownButtonFormField<String>(
-                decoration: AppTheme.input('Gender'),
-                value: ['Male', 'Female', 'Other'].contains(_gender)
+                decoration: AppTheme.input('Giới tính'),
+                value: ['Nam', 'Nữ', 'Khác'].contains(_gender)
                     ? _gender
-                    : 'Male',
+                    : 'Nam',
                 items: const [
-                  DropdownMenuItem(value: 'Male', child: Text('Male')),
-                  DropdownMenuItem(value: 'Female', child: Text('Female')),
-                  DropdownMenuItem(value: 'Other', child: Text('Other')),
+                  DropdownMenuItem(value: 'Nam', child: Text('Nam')),
+                  DropdownMenuItem(value: 'Nữ', child: Text('Nữ')),
+                  DropdownMenuItem(value: 'Khác', child: Text('Khác')),
                 ],
                 onChanged: (v) => setState(() => _gender = v ?? 'Male'),
               ),
@@ -169,7 +169,7 @@ class _MyDetailScreenState extends State<MyDetailScreen> {
 
               TextFormField(
                 controller: _phone,
-                decoration: AppTheme.input('Phone Number'),
+                decoration: AppTheme.input('Số điện thoại'),
                 keyboardType: TextInputType.phone,
               ),
               const SizedBox(height: 20),
@@ -183,7 +183,7 @@ class _MyDetailScreenState extends State<MyDetailScreen> {
                   height: 20,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-                    : const Text('Submit'),
+                    : const Text('Cập nhật'),
               ),
             ],
           ),

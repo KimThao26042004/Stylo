@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../models/similar_product.dart';
+import '../../models/product.dart';
 import '../../services/image_search_service.dart';
+import '../../widgets/product_card.dart';
 
 class SearchByImageScreen extends StatefulWidget {
   const SearchByImageScreen({super.key});
@@ -13,7 +15,6 @@ class SearchByImageScreen extends StatefulWidget {
 
 class _SearchByImageScreenState extends State<SearchByImageScreen> {
   XFile? _image;
-
   bool _loading = false;
   List<SimilarProduct> _results = [];
 
@@ -24,11 +25,10 @@ class _SearchByImageScreenState extends State<SearchByImageScreen> {
     if (picked == null) return;
 
     setState(() {
-      _image = picked; // KHÔNG convert sang File
+      _image = picked;
     });
 
     await _search();
-
   }
 
   Future<void> _search() async {
@@ -44,86 +44,56 @@ class _SearchByImageScreenState extends State<SearchByImageScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Search failed: $e")),
       );
+    } finally {
+      setState(() => _loading = false);
     }
-    setState(() => _loading = false);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Search by Image")),
+      appBar: AppBar(title: const Text("Tìm kiếm hình ảnh")),
       body: Column(
         children: [
           const SizedBox(height: 12),
 
           ElevatedButton(
             onPressed: _pickImage,
-            child: const Text("Choose Image"),
+            child: const Text("Chọn ảnh"),
           ),
 
-          if (_loading) const Padding(
-            padding: EdgeInsets.all(16),
-            child: CircularProgressIndicator(),
-          ),
+          if (_loading)
+            const Padding(
+              padding: EdgeInsets.all(16),
+              child: CircularProgressIndicator(),
+            ),
+
+          const SizedBox(height: 14),
 
           Expanded(
             child: GridView.builder(
               padding: const EdgeInsets.all(12),
+              itemCount: _results.length,
               gridDelegate:
               const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
-                childAspectRatio: 0.65,
-                crossAxisSpacing: 10,
-                mainAxisSpacing: 10,
+                mainAxisSpacing: 14,
+                crossAxisSpacing: 14,
+                childAspectRatio: 0.63,
               ),
-              itemCount: _results.length,
-              itemBuilder: (context, i) {
+              itemBuilder: (_, i) {
                 final p = _results[i];
 
-                return GestureDetector(
-                  onTap: () {
-                    // 👉 sang ProductDetail
-                    Navigator.pushNamed(
-                      context,
-                      '/product-detail',
-                      arguments: p.id,
-                    );
-                  },
-                  child: Card(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Image.network(
-                            "${ImageSearchService.imageBaseUrl}${p.imageUrl}",
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) =>
-                            const Icon(Icons.broken_image),
-                          )
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(8),
-                          child: Text(
-                            p.name,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          child: Text(
-                            "${p.price} ₫",
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.red,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                      ],
-                    ),
-                  ),
+                /// convert SimilarProduct → Product (CHỈ ĐỂ HIỂN THỊ)
+                final product = Product(
+                  sanPhamId: p.id,
+                  tenSanPham: p.name,
+                  giaBan: p.price,
+                  imageUrl:
+                  "${ImageSearchService.imageBaseUrl}${p.imageUrl}",
                 );
+
+                return ProductCard(product: product);
               },
             ),
           ),

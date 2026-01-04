@@ -33,9 +33,9 @@ class RecommendSection extends StatelessWidget {
             itemCount: items.length,
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
-              childAspectRatio: 0.65,
+              mainAxisSpacing: 14,
+              crossAxisSpacing: 14,
+              childAspectRatio: 0.63,
             ),
             itemBuilder: (_, i) => RecommendCard(product: items[i]),
           ),

@@ -51,7 +51,7 @@ class _AddressScreenState extends State<AddressScreen> {
     _initDefault(account);
 
     return Scaffold(
-      appBar: const AppBackBar(title: 'Address'),
+      appBar: const AppBackBar(title: 'Địa chỉ'),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -115,7 +115,7 @@ class _AddressScreenState extends State<AddressScreen> {
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Text(
-                                    'DEFAULT',
+                                    'MẶC ĐỊNH',
                                     style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,
@@ -187,7 +187,7 @@ class _AddressScreenState extends State<AddressScreen> {
           /// Add new
           ListTile(
             leading: const Icon(Icons.add),
-            title: const Text('Add New Address'),
+            title: const Text('Thêm địa chỉ mới'),
             onTap: () async {
               final result = await Navigator.push(
                 context,
@@ -229,7 +229,7 @@ class _AddressScreenState extends State<AddressScreen> {
 
             Navigator.pop(context);
           },
-          child: const Text('Apply'),
+          child: const Text('Cập nhật'),
         ),
       ),
     );

@@ -15,7 +15,7 @@ class OrderDetailScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      appBar: AppBackBar(title: 'Order Details #${order.id}'),
+      appBar: AppBackBar(title: 'Chi tiết đơn hàng #${order.id}'),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -25,13 +25,13 @@ class OrderDetailScreen extends StatelessWidget {
             _buildSection(
               child: Column(
                 children: [
-                  _buildInfoRow('Order Date', df.format(order.ngayDat)),
+                  _buildInfoRow('Ngày đặt', df.format(order.ngayDat)),
                   const Divider(),
-                  _buildInfoRow('Status', order.trangThaiGiao.toUpperCase(),
+                  _buildInfoRow('Trạng thái', order.trangThaiGiao.toUpperCase(),
                       valueColor: Colors.blue, isBold: true),
                   if (order.maVanDon != null) ...[
                     const Divider(),
-                    _buildInfoRow('Tracking ID', order.maVanDon!),
+                    _buildInfoRow('Mã vận đơn', order.maVanDon!),
                   ]
                 ],
               ),
@@ -60,7 +60,7 @@ class OrderDetailScreen extends StatelessWidget {
                       ),
                     ),
                     title: Text(item.name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-                    subtitle: Text('Size: ${item.size} | Qty: ${item.quantity}'),
+                    subtitle: Text('Kích cỡ: ${item.size} | Số lượng: ${item.quantity}'),
                     trailing: Text('\$${item.price.toInt()}', style: const TextStyle(fontWeight: FontWeight.bold)),
                   );
                 },
@@ -68,18 +68,18 @@ class OrderDetailScreen extends StatelessWidget {
             ),
 
             const SizedBox(height: 16),
-            const Text('Payment Summary', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            const Text('Tóm tắt thanh toán', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
             const SizedBox(height: 8),
 
             // 3. Tổng kết tiền bạc
             _buildSection(
               child: Column(
                 children: [
-                  _buildInfoRow('Subtotal', '\$${_calculateSubtotal().toInt()}'),
-                  _buildInfoRow('Shipping Fee', '\$0'), // Bạn có thể thêm trường này vào model nếu cần
-                  _buildInfoRow('Discount', '-\$0'),
+                  _buildInfoRow('Tổng phụ', '\$${_calculateSubtotal().toInt()}'),
+                  _buildInfoRow('Phí vận chuyển', '\$0'), // Bạn có thể thêm trường này vào model nếu cần
+                  _buildInfoRow('Giảm giá', '-\$0'),
                   const Divider(),
-                  _buildInfoRow('Total Payment', '\$${order.tongThanhToan.toInt()}',
+                  _buildInfoRow('Tổng thanh toán', '\$${order.tongThanhToan.toInt()}',
                       isBold: true, fontSize: 18, valueColor: Colors.black),
                 ],
               ),
@@ -103,7 +103,7 @@ class OrderDetailScreen extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                child: const Text('Track Shipment', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                child: const Text('Theo dõi đơn hàng', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               ),
             ),
           ],
